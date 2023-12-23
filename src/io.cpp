@@ -9,8 +9,12 @@
 
 namespace ssak {
 
-bool is_printable(const std::string &s) {
-  
+static bool is_printable(const std::string &s) {
+  return any_of(s.begin(), s.end(), isprint);
+}
+
+void sanitize(std::string &s) {
+  if (is_printable(s)) return;
 }
 
 std::string sanitize(const std::string &s) {
