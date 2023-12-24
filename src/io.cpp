@@ -9,6 +9,8 @@
 
 namespace ssak {
 
+
+
 static bool is_printable(const std::string &s) {
   return any_of(s.begin(), s.end(), isprint);
 }
