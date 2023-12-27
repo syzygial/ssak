@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 namespace ssak {
+namespace io {
 
 static bool is_printable(const std::string &s) {
   return any_of(s.begin(), s.end(), isprint);
@@ -20,6 +21,11 @@ void sanitize(std::string &s) {
 std::string sanitize(const std::string &s) {
 
 }
+
+class Term {
+public:
+  Term();
+};
 
 class ansi_printer {
 public:
@@ -59,4 +65,5 @@ std::ostream& operator<<(std::ostream &o, const ansi_printer &ap) {
 bool ansi_printer::isatty() {
   return ::isatty(fileno(this->fp));
 }
+} // napespace io
 } // namespace ssak

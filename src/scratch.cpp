@@ -22,4 +22,8 @@ int ssak_scratch_list(int argc, char **argv) {
   return 0;
 }
 
+int ssak_scratch_archive(int argc, char **argv) {
+  return 0;
+}
+
 } // namespace ssak
