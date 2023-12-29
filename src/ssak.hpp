@@ -1,6 +1,8 @@
 #ifndef _SSAK_HPP
 #define _SSAK_HPP
 
+#include "sqlite.hpp"
+
 #include <string>
 
 class ssak_cmd {
