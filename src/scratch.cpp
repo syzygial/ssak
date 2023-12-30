@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdlib>
 #include <sstream>
 #include <unistd.h>
 
@@ -22,7 +23,11 @@ int ssak_scratch_list(int argc, char **argv) {
   return 0;
 }
 
-int ssak_scratch_archive(int argc, char **argv) {
+int ssak_scratch_archive(std::string exp_name) {
+  return 0;
+}
+
+int ssak_scratch_archive_cmd(int argc, char **argv) {
   return 0;
 }
 
