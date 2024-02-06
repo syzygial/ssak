@@ -5,6 +5,8 @@
 
 #include <string>
 
+namespace ssak {
+
 class ssak_cmd {
 public:
   typedef int (*cmd_fn) (int argc, char **argv);
@@ -20,5 +22,7 @@ public:
 private:
   std::string name;
 };
+
+} // namespace ssak
 
 #endif

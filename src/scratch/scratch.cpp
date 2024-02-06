@@ -3,7 +3,7 @@
 #include <sstream>
 #include <unistd.h>
 
-#include "ssak.hpp"
+#include "../ssak.hpp"
 
 namespace ssak {
 

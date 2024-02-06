@@ -1,6 +1,7 @@
 #include <stddef.h> // NULL
 #include <sqlite3.h>
 #include <cstring>
+
 namespace ssak {
 namespace util {
 

@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-#include "sqlite.hpp"
+#include "scratch.hpp"
 
 namespace ssak {
 
