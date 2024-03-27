@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <archive.h>
+#include <archive_entry.h>
 
 #include "../sqlite.hpp"
 
@@ -25,6 +26,7 @@ class scratch_sqlite3_ctx : public util::sqlite3_ctx {
 
 int scratch_sqlite3_ctx::create_archive(const char *dirname) {
   struct archive *ar = archive_write_new();
+  struct archive_entry *e = NULL;
   archive_write_add_filter_gzip(ar);
   archive_write_set_format_pax_restricted(ar);
   auto files_itr = fs::recursive_directory_iterator(dirname);
