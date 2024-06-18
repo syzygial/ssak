@@ -16,7 +16,7 @@ public:
   void connect(const char *db_name);
   void use_db(const char *db_name);
   operator bool() const { return (this->db != NULL); }
-private:
+protected:
   sqlite3 *db = NULL;
   std::vector<std::string> tables;
   void get_tables();
