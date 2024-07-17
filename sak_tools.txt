@@ -4,3 +4,4 @@ mindmap
 schedule
 scratch
 zoo
+dashboard
