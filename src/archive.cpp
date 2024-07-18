@@ -97,6 +97,7 @@ void* create_archive(const char *dirname, size_t *archive_sz) {
   auto files_itr = fs::recursive_directory_iterator(dirname);
   size_t buf_sz = 0;
   *archive_sz = 0;
+  // guesstimate the size of the buffer we need to allocate
   for (auto f: files_itr) {
     buf_sz += fs::file_size(f.path());
   }
