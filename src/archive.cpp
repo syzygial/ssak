@@ -63,11 +63,7 @@ namespace ssak {
       return ar_files;
     }
   }
-  void create_archive(const char *dirname, const char *archive_name) {
-    struct archive *a = archive_write_new();
-    archive_write_add_filter_gzip(a);
-    archive_write_set_format_pax_restricted(a);
-    archive_write_open_filename(a, archive_name);
+  static void _create_archive(struct archive *a, const char *dirname) {
     struct archive_entry *e = NULL;
     auto ar_files = get_file_list(dirname);
     for (auto f : ar_files) {
@@ -81,12 +77,37 @@ namespace ssak {
       std::FILE* fp = fopen(f.path().c_str(), "r");
       char *buf = (char*)malloc(sz);
       fread(buf, 1, sz, fp);
-      archive_read_data(a, buf, sz);
+      archive_write_data(a, buf, sz);
       free(buf);
       fclose(fp);
       archive_entry_free(e);
-    }
+    }    
+  }
+  void create_archive(const char *dirname, const char *archive_name) {
+    struct archive *a = archive_write_new();
+    // TODO: parse filename to figure out which compression filters to use
+    archive_write_add_filter_gzip(a);
+    archive_write_set_format_pax_restricted(a);
+    archive_write_open_filename(a, archive_name);
+    _create_archive(a, dirname);
     archive_write_close(a);
     archive_write_free(a);
   }
+void* create_archive(const char *dirname, size_t *archive_sz) {
+  auto files_itr = fs::recursive_directory_iterator(dirname);
+  size_t buf_sz = 0;
+  *archive_sz = 0;
+  for (auto f: files_itr) {
+    buf_sz += fs::file_size(f.path());
+  }
+  buf_sz += 0x1000;
+  void *archive_buf = malloc(buf_sz);
+  struct archive *a = archive_write_new();
+  archive_write_set_format_pax_restricted(a);
+  archive_write_open_memory(a, archive_buf, buf_sz, archive_sz);
+  _create_archive(a, dirname);
+  archive_write_close(a);
+  archive_write_free(a);
+  return archive_buf;
+}
 }
