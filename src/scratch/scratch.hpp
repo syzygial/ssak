@@ -1,3 +1,6 @@
+#ifndef SSAK_SCRATCH_HPP
+#define SSAK_SCRATCH_HPP
+
 #include "../sqlite.hpp"
 
 namespace ssak {
@@ -49,3 +52,5 @@ class scratch {
 
 }
 }
+
+#endif
