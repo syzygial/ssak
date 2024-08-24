@@ -3,6 +3,7 @@
 
 #include <set>
 
+#include "../archive.hpp"
 #include "../config.hpp"
 #include "../sqlite.hpp"
 #include "../exp_templates.hpp"
@@ -16,7 +17,8 @@ namespace {
 class scratch_sqlite3_ctx : private util::sqlite3_ctx {
   public:
     scratch_sqlite3_ctx(const char *db_name);
-    void add_archive(const char *name, void *archive_data, int n_bytes);
+    void add_archive(const char *name, void *archive_data, bool exp_archived, int n_bytes);
+    void delete_archive(const char *name);
 };
 
 scratch_sqlite3_ctx::scratch_sqlite3_ctx(const char *db_name) {
@@ -34,12 +36,23 @@ scratch_sqlite3_ctx::scratch_sqlite3_ctx(const char *db_name) {
   sqlite3_finalize(stmt);
 }
 
-void scratch_sqlite3_ctx::add_archive(const char *name, void *archive_data, int n_bytes) {
+void scratch_sqlite3_ctx::add_archive(const char *name, void *archive_data, bool exp_archived, int n_bytes) {
   sqlite3_stmt *stmt;
-  const char *stmt_text = "INSERT INTO scratch_archive VALUES(NULL, ?1, ?2)";
+  const char *exp_archived_str = (exp_archived) ? "TRUE" : "FALSE";
+  const char *stmt_text = "INSERT INTO scratch_archive VALUES(NULL, ?1, ?2, ?3)";
   sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
   sqlite3_bind_text(stmt, 1, name, std::strlen(name), SQLITE_STATIC);
-  sqlite3_bind_blob(stmt, 2, archive_data, n_bytes, SQLITE_STATIC);
+  sqlite3_bind_text(stmt, 2, exp_archived_str, std::strlen(exp_archived_str), SQLITE_STATIC);
+  sqlite3_bind_blob(stmt, 3, archive_data, n_bytes, SQLITE_STATIC);
+  sqlite3_step(stmt);
+  sqlite3_finalize(stmt);
+}
+
+void scratch_sqlite3_ctx::delete_archive(const char *name) {
+  sqlite3_stmt *stmt;
+  const char *stmt_text = "DELETE FROM scratch_archive WHERE exp_name=?1";
+  sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
+  sqlite3_bind_text(stmt, 1, name, std::strlen(name), SQLITE_STATIC);
   sqlite3_step(stmt);
   sqlite3_finalize(stmt);
 }
@@ -58,9 +71,21 @@ class scratch {
       fs::create_directories(exp_path);
     }
     void del_exp(const char *name);
-    void archive_exp(const char *name);
+    void archive_exp(const char *name) {
+      auto& exp_info = experiments.at(name);
+      if (exp_info.is_archived) return;
+      size_t blob_size = 0;
+      void *exp_blob = create_archive(exp_info.exp_root.c_str(), &blob_size);
+      sqlite3_conn.add_archive(name, exp_blob, true, blob_size);
+      fs::remove_all(exp_info.exp_root);
+      exp_info.is_archived = true;
+    }
     void extract_exp(const char *name);
-    void list_exp();
+    void list_exp(std::ostream &os) {
+      for (auto& [k,v] : experiments) {
+        os << k << std::endl;
+      }
+    }
     void apply_template(const char *exp_name, const char *template_name) {
       const fs::path& exp_root = this->get_exp_path(exp_name);
       initialize_template(template_name, exp_root);
