@@ -1,6 +1,7 @@
 #ifndef SSAK_SCRATCH_HPP
 #define SSAK_SCRATCH_HPP
 
+#include <iostream>
 #include <set>
 
 #include "../archive.hpp"
@@ -14,11 +15,18 @@ namespace ssak {
 namespace scratch {
 
 namespace {
+
+struct exp_info {
+  fs::path exp_root;
+  bool is_archived;
+};
+
 class scratch_sqlite3_ctx : private util::sqlite3_ctx {
   public:
     scratch_sqlite3_ctx(const char *db_name);
     void add_archive(const char *name, void *archive_data, bool exp_archived, int n_bytes);
     void delete_archive(const char *name);
+    std::map<const char*, exp_info&> get_info();
 };
 
 scratch_sqlite3_ctx::scratch_sqlite3_ctx(const char *db_name) {
@@ -56,11 +64,25 @@ void scratch_sqlite3_ctx::delete_archive(const char *name) {
   sqlite3_step(stmt);
   sqlite3_finalize(stmt);
 }
+
+std::map<const char*, exp_info&> scratch_sqlite3_ctx::get_info() {
+  sqlite3_stmt *stmt;
+  const char *stmt_text = "SELECT exp_name,is_archived,exp_data FROM scratch_archive";
+  sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
+  while (sqlite3_step(stmt) != SQLITE_DONE) {
+    const unsigned char *exp_name = sqlite3_column_text(stmt, 2);
+    int exp_archived = sqlite3_column_int(stmt, 3);
+    if (exp_archived) {
+
+    }
+  }
+}
+
 }
 
 class scratch {
   public:
-    scratch() : sqlite3_conn("test.db") {}
+    scratch() : sqlite3_conn("test.db"), experiments(sqlite3_conn.get_info()) {}
     void create_exp(const char *name) {
       fs::path exp_path(std::string(Config::Global()["exp_root"]) + "/" + std::string(name));
       fs::create_directory(exp_path);
@@ -72,13 +94,13 @@ class scratch {
     }
     void del_exp(const char *name);
     void archive_exp(const char *name) {
-      auto& exp_info = experiments.at(name);
-      if (exp_info.is_archived) return;
+      auto& archive_exp_info = experiments.at(name);
+      if (archive_exp_info.is_archived) return;
       size_t blob_size = 0;
-      void *exp_blob = create_archive(exp_info.exp_root.c_str(), &blob_size);
+      void *exp_blob = create_archive(archive_exp_info.exp_root.c_str(), &blob_size);
       sqlite3_conn.add_archive(name, exp_blob, true, blob_size);
-      fs::remove_all(exp_info.exp_root);
-      exp_info.is_archived = true;
+      fs::remove_all(archive_exp_info.exp_root);
+      archive_exp_info.is_archived = true;
     }
     void extract_exp(const char *name);
     void list_exp(std::ostream &os) {
@@ -86,21 +108,20 @@ class scratch {
         os << k << std::endl;
       }
     }
+    void list_exp() {
+      list_exp(std::cout);
+    }
     void apply_template(const char *exp_name, const char *template_name) {
       const fs::path& exp_root = this->get_exp_path(exp_name);
       initialize_template(template_name, exp_root);
     }
 
   private:
-    struct exp_info {
-      fs::path exp_root;
-      bool is_archived;
-    };
     bool name_taken(const char *name) {
       return (experiments.count(name) > 0);
     }
     const fs::path& get_exp_path(const char *name) {
-      if (!name_taken(name)) return fs::path("/dev/null");
+      if (!name_taken(name)) return fs::path();
       return experiments.at(name).exp_root;
     }
     scratch_sqlite3_ctx sqlite3_conn;
