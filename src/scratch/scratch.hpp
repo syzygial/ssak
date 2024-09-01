@@ -71,9 +71,22 @@ std::map<const char*, exp_info&> scratch_sqlite3_ctx::get_info() {
   sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
   while (sqlite3_step(stmt) != SQLITE_DONE) {
     const unsigned char *exp_name = sqlite3_column_text(stmt, 2);
+    size_t exp_name_len = sqlite3_column_bytes(stmt, 2);
+    char *_exp_name = (char*)malloc(exp_name_len);
+    struct exp_info e;
+    std::memcpy(_exp_name, exp_name, exp_name_len);
     int exp_archived = sqlite3_column_int(stmt, 3);
     if (exp_archived) {
-
+      e.is_archived = true;
+      e.exp_root = fs::path();
+    }
+    else {
+      e.is_archived = false;
+      const unsigned char *exp_path = sqlite3_column_text(stmt, 4);
+      size_t exp_path_len = sqlite3_column_bytes(stmt, 4);
+      char *_exp_path = (char*)malloc(exp_path_len);
+      std::memcpy(_exp_path, exp_path, exp_path_len);
+      e.exp_root = fs::path();
     }
   }
 }
