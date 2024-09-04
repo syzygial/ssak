@@ -25,8 +25,9 @@ class scratch_sqlite3_ctx : private util::sqlite3_ctx {
   public:
     scratch_sqlite3_ctx(const char *db_name);
     void add_archive(const char *name, void *archive_data, bool exp_archived, int n_bytes);
+    void* extract_archive(const char *name);
     void delete_archive(const char *name);
-    std::map<const char*, exp_info&> get_info();
+    std::map<const char*, exp_info> get_info();
 };
 
 scratch_sqlite3_ctx::scratch_sqlite3_ctx(const char *db_name) {
@@ -65,30 +66,47 @@ void scratch_sqlite3_ctx::delete_archive(const char *name) {
   sqlite3_finalize(stmt);
 }
 
-std::map<const char*, exp_info&> scratch_sqlite3_ctx::get_info() {
+std::map<const char*, exp_info> scratch_sqlite3_ctx::get_info() {
   sqlite3_stmt *stmt;
+  std::map<const char*, exp_info> _exp_info;
   const char *stmt_text = "SELECT exp_name,is_archived,exp_data FROM scratch_archive";
   sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
   while (sqlite3_step(stmt) != SQLITE_DONE) {
-    const unsigned char *exp_name = sqlite3_column_text(stmt, 2);
-    size_t exp_name_len = sqlite3_column_bytes(stmt, 2);
+    const unsigned char *exp_name = sqlite3_column_text(stmt, 0);
+    size_t exp_name_len = sqlite3_column_bytes(stmt, 0);
     char *_exp_name = (char*)malloc(exp_name_len);
     struct exp_info e;
     std::memcpy(_exp_name, exp_name, exp_name_len);
-    int exp_archived = sqlite3_column_int(stmt, 3);
+    int exp_archived = sqlite3_column_int(stmt, 1);
     if (exp_archived) {
       e.is_archived = true;
       e.exp_root = fs::path();
     }
     else {
       e.is_archived = false;
-      const unsigned char *exp_path = sqlite3_column_text(stmt, 4);
-      size_t exp_path_len = sqlite3_column_bytes(stmt, 4);
+      const unsigned char *exp_path = sqlite3_column_text(stmt, 2);
+      size_t exp_path_len = sqlite3_column_bytes(stmt, 2);
       char *_exp_path = (char*)malloc(exp_path_len);
       std::memcpy(_exp_path, exp_path, exp_path_len);
-      e.exp_root = fs::path();
+      e.exp_root = fs::path(_exp_path);
     }
+    _exp_info[_exp_name] = e;
   }
+  sqlite3_finalize(stmt);
+  return _exp_info;
+}
+
+void* scratch_sqlite3_ctx::extract_archive(const char *name) {
+  sqlite3_stmt *stmt;
+  const char *stmt_text = "SELECT exp_data FROM scratch_archive WHERE name=$1";
+  sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
+  sqlite3_bind_text(stmt, 1, name, std::strlen(name), SQLITE_STATIC);
+  sqlite3_step(stmt);
+  const void *exp_data = sqlite3_column_blob(stmt, 0);
+  size_t exp_data_len = sqlite3_column_bytes(stmt, 0);
+  void *_exp_data = memcpy(_exp_data, exp_data, exp_data_len);
+  sqlite3_finalize(stmt);
+  return _exp_data;
 }
 
 }
@@ -138,7 +156,7 @@ class scratch {
       return experiments.at(name).exp_root;
     }
     scratch_sqlite3_ctx sqlite3_conn;
-    std::map<const char*, exp_info&> experiments;
+    std::map<const char*, exp_info> experiments;
 };
 
 }

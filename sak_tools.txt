@@ -5,3 +5,4 @@ schedule
 scratch
 zoo
 dashboard
+sktree (skill tree)
