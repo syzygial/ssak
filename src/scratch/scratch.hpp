@@ -26,7 +26,13 @@ class scratch {
     if (name_taken(name)) return;
     fs::create_directories(exp_path);
   }
-  void del_exp(const char *name);
+  void del_exp(const char *name) {
+    auto &_exp_info = experiments.at(name);
+    if (!_exp_info.is_archived) {
+      fs::remove_all(_exp_info.exp_root);
+    }
+    sqlite3_conn.delete_archive(name);
+  }
   void archive_exp(const char *name) {
     auto& archive_exp_info = experiments.at(name);
     if (archive_exp_info.is_archived) return;
@@ -36,7 +42,11 @@ class scratch {
     fs::remove_all(archive_exp_info.exp_root);
     archive_exp_info.is_archived = true;
   }
-  void extract_exp(const char *name);
+  void extract_exp(const char *name, fs::path& dir) {
+    auto& _exp_info = experiments.at(name);
+    if (!_exp_info.is_archived) return;
+    
+  }
   void list_exp(std::ostream &os) {
     for (auto& [k,v] : experiments) {
       os << k << std::endl;

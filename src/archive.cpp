@@ -1,7 +1,6 @@
-#include <archive.h>
-#include <archive_entry.h>
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <vector>
 
@@ -54,6 +53,7 @@ namespace ssak {
         std::vector<fs::directory_entry>& v;
         int i = 0;
     };
+
     std::vector<fs::directory_entry> get_file_list(const char *dirname) {
       // find all files in directory
       auto files_itr = fs::recursive_directory_iterator(dirname);
@@ -111,4 +111,9 @@ void* create_archive(const char *dirname, size_t *archive_sz) {
   archive_write_free(a);
   return archive_buf;
 }
+
+void extract_archive(void *archive, size_t archive_len, fs::path& root_dir) {
+  
 }
+
+} // namespace ssak
