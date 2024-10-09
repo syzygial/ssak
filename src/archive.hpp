@@ -40,6 +40,18 @@ namespace ssak {
       }
     }
     archive_itr(struct archive *a) : a(a) {}
+    archive_itr(void *archive_data, size_t len) {
+      this->archive_managed = true;
+      this->a = archive_read_new();
+      archive_read_support_format_tar(this->a);
+      archive_read_support_filter_gzip(this->a);
+      if (archive_read_open_memory(this->a, archive_data, len) != ARCHIVE_OK) {
+        throw std::runtime_error("couldn't read archive");
+      }
+      if (archive_read_next_header(this->a, &(this->e)) != ARCHIVE_OK) {
+        this->i = -1;
+      }
+    }
     archive_itr() = default;
     ~archive_itr() {
       if (this->archive_managed) {
