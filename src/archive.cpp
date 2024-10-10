@@ -112,8 +112,17 @@ void* create_archive(const char *dirname, size_t *archive_sz) {
   return archive_buf;
 }
 
-void extract_archive(void *archive, size_t archive_len, fs::path& root_dir) {
-  
+void extract_archive(void *archive, size_t archive_len, const std::string root_dir) {
+  archive_itr itr(archive, archive_len);
+  for (const auto &[fname, file_contents] : itr) {
+    fs::path fname_path(root_dir + "/" + fname);
+    if (!fs::exists(fname_path.parent_path())) {
+      fs::create_directories(fname_path.parent_path());
+    }
+    FILE *f = fopen(fname_path.c_str(), "wb");
+    fwrite(file_contents.c_str(), 1, file_contents.length(), f);
+    fclose(f);
+  }
 }
 
 } // namespace ssak
