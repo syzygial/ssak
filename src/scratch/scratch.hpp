@@ -21,11 +21,19 @@ class scratch {
   void create_exp(const char *name) {
     fs::path exp_path(std::string(Config::Global()["exp_root"]) + "/" + std::string(name));
     fs::create_directory(exp_path);
-    this->create_exp(name, exp_path);
+    this->create_exp(name, std::string(exp_path));
   }
-  void create_exp(const char *name, fs::path& exp_path) {
+  void create_exp(const char *name, const std::string& exp_path) {
     if (name_taken(name)) return;
     fs::create_directories(exp_path);
+  }
+  void add_exp(const char *name, const std::string& exp_path) {
+    if (!fs::exists(exp_path)) return;
+    const fs::path absolute_path = fs::absolute(exp_path);
+    const char *path_str = absolute_path.c_str();
+    sqlite3_conn.add_archive(name, path_str, false, std::strlen(path_str));
+
+    this->experiments[name] = {absolute_path, false};
   }
   void del_exp(const char *name) {
     auto &_exp_info = experiments.at(name);
@@ -83,10 +91,10 @@ class scratch {
       sqlite3_step(stmt);
       sqlite3_finalize(stmt);
     }
-    void add_archive(const char *name, void *archive_data, bool exp_archived, int n_bytes) {
+    void add_archive(const char *name, const void *archive_data, bool exp_archived, int n_bytes) {
       sqlite3_stmt *stmt;
       const char *exp_archived_str = (exp_archived) ? "TRUE" : "FALSE";
-      const char *stmt_text = "INSERT INTO scratch_archive VALUES(NULL, ?1, ?2, ?3)";
+      const char *stmt_text = "INSERT INTO scratch_experiments VALUES(NULL, ?1, ?2, ?3)";
       sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
       sqlite3_bind_text(stmt, 1, name, std::strlen(name), SQLITE_STATIC);
       sqlite3_bind_text(stmt, 2, exp_archived_str, std::strlen(exp_archived_str), SQLITE_STATIC);
@@ -96,7 +104,7 @@ class scratch {
     }
     std::pair<void*,size_t> extract_archive(const char *name) {
       sqlite3_stmt *stmt;
-      const char *stmt_text = "SELECT exp_data FROM scratch_archive WHERE name=$1";
+      const char *stmt_text = "SELECT exp_data FROM scratch_experiments WHERE name=?1";
       sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
       sqlite3_bind_text(stmt, 1, name, std::strlen(name), SQLITE_STATIC);
       sqlite3_step(stmt);
@@ -108,7 +116,7 @@ class scratch {
     }
     void delete_archive(const char *name) {
       sqlite3_stmt *stmt;
-      const char *stmt_text = "DELETE FROM scratch_archive WHERE exp_name=?1";
+      const char *stmt_text = "DELETE FROM scratch_experiments WHERE exp_name=?1";
       sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
       sqlite3_bind_text(stmt, 1, name, std::strlen(name), SQLITE_STATIC);
       sqlite3_step(stmt);
@@ -117,7 +125,7 @@ class scratch {
     std::map<const char*, exp_info> get_info() {
       sqlite3_stmt *stmt;
       std::map<const char*, exp_info> _exp_info;
-      const char *stmt_text = "SELECT exp_name,is_archived,exp_data FROM scratch_archive";
+      const char *stmt_text = "SELECT exp_name,exp_archived,exp_data FROM scratch_experiments";
       sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
       while (sqlite3_step(stmt) != SQLITE_DONE) {
         const unsigned char *exp_name = sqlite3_column_text(stmt, 0);
@@ -148,7 +156,7 @@ class scratch {
   bool name_taken(const char *name) {
     return (experiments.count(name) > 0);
   }
-  const fs::path& get_exp_path(const char *name) {
+  const fs::path get_exp_path(const char *name) {
     if (!name_taken(name)) return fs::path();
     return experiments.at(name).exp_root;
   }

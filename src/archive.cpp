@@ -99,7 +99,9 @@ void* create_archive(const char *dirname, size_t *archive_sz) {
   *archive_sz = 0;
   // guesstimate the size of the buffer we need to allocate
   for (auto f: files_itr) {
-    buf_sz += fs::file_size(f.path());
+    if (fs::is_regular_file(f.path())) {
+      buf_sz += fs::file_size(f.path());
+    }
   }
   buf_sz += 0x1000;
   void *archive_buf = malloc(buf_sz);
