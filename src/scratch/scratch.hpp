@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <set>
+#include <utility>
 
 #include "../archive.hpp"
 #include "../config.hpp"
@@ -45,7 +46,8 @@ class scratch {
   void extract_exp(const char *name, fs::path& dir) {
     auto& _exp_info = experiments.at(name);
     if (!_exp_info.is_archived) return;
-    
+    const auto& [archive_dat, archive_len] = sqlite3_conn.extract_archive(name);
+    extract_archive(archive_dat, archive_len, dir);
   }
   void list_exp(std::ostream &os) {
     for (auto& [k,v] : experiments) {
@@ -92,7 +94,7 @@ class scratch {
       sqlite3_step(stmt);
       sqlite3_finalize(stmt);
     }
-    void* extract_archive(const char *name) {
+    std::pair<void*,size_t> extract_archive(const char *name) {
       sqlite3_stmt *stmt;
       const char *stmt_text = "SELECT exp_data FROM scratch_archive WHERE name=$1";
       sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
@@ -102,7 +104,7 @@ class scratch {
       size_t exp_data_len = sqlite3_column_bytes(stmt, 0);
       void *_exp_data = memcpy(_exp_data, exp_data, exp_data_len);
       sqlite3_finalize(stmt);
-      return _exp_data;
+      return {_exp_data, exp_data_len};
     }
     void delete_archive(const char *name) {
       sqlite3_stmt *stmt;
