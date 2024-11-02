@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 namespace ssak {
   void create_archive(const char *dirname, const char *archive_name);
   void* create_archive(const char *dirname, size_t *archive_sz); // in memory
-  void extract_archive(void *archive, size_t archive_len, const std::string root_dir);
+  void extract_archive(void *archive, size_t archive_len, const std::string& root_dir);
 
   class archive_itr {
     public:

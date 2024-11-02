@@ -64,12 +64,14 @@ namespace ssak {
     }
   }
   static void _create_archive(struct archive *a, const char *dirname) {
+    fs::path exp_parent = fs::path(dirname).parent_path();
     struct archive_entry *e = NULL;
     auto ar_files = get_file_list(dirname);
     for (auto f : ar_files) {
       int sz = fs::file_size(f.path());
       e = archive_entry_new();
-      archive_entry_set_pathname(e, f.path().c_str());
+      //archive_entry_set_pathname(e, f.path().c_str());
+      archive_entry_set_pathname(e, fs::relative(f.path(), exp_parent).c_str());
       archive_entry_set_size(e, sz);
       archive_entry_set_filetype(e, AE_IFREG);
       archive_entry_set_perm(e, 0644);
@@ -103,18 +105,20 @@ void* create_archive(const char *dirname, size_t *archive_sz) {
       buf_sz += fs::file_size(f.path());
     }
   }
-  buf_sz += 0x1000;
+  buf_sz += 0x2000;
   void *archive_buf = malloc(buf_sz);
   struct archive *a = archive_write_new();
+  archive_write_add_filter_gzip(a);
   archive_write_set_format_pax_restricted(a);
   archive_write_open_memory(a, archive_buf, buf_sz, archive_sz);
+  //archive_write_set_bytes_per_block(a, 0);
   _create_archive(a, dirname);
   archive_write_close(a);
   archive_write_free(a);
   return archive_buf;
 }
 
-void extract_archive(void *archive, size_t archive_len, const std::string root_dir) {
+void extract_archive(void *archive, size_t archive_len, const std::string& root_dir) {
   archive_itr itr(archive, archive_len);
   for (const auto &[fname, file_contents] : itr) {
     fs::path fname_path(root_dir + "/" + fname);

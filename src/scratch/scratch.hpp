@@ -31,7 +31,7 @@ class scratch {
     if (!fs::exists(exp_path)) return;
     const fs::path absolute_path = fs::absolute(exp_path);
     const char *path_str = absolute_path.c_str();
-    sqlite3_conn.add_archive(name, path_str, false, std::strlen(path_str));
+    sqlite3_conn.add_exp(name, path_str);
 
     this->experiments[name] = {absolute_path, false};
   }
@@ -47,15 +47,17 @@ class scratch {
     if (archive_exp_info.is_archived) return;
     size_t blob_size = 0;
     void *exp_blob = create_archive(archive_exp_info.exp_root.c_str(), &blob_size);
-    sqlite3_conn.add_archive(name, exp_blob, true, blob_size);
+    sqlite3_conn.archive_exp(name, exp_blob, blob_size);
     fs::remove_all(archive_exp_info.exp_root);
+    archive_exp_info.exp_root = fs::path();
     archive_exp_info.is_archived = true;
   }
-  void extract_exp(const char *name, fs::path& dir) {
+  void extract_exp(const char *name, const std::string& dir) {
     auto& _exp_info = experiments.at(name);
     if (!_exp_info.is_archived) return;
     const auto& [archive_dat, archive_len] = sqlite3_conn.extract_archive(name);
     extract_archive(archive_dat, archive_len, dir);
+    free(archive_dat);
   }
   void list_exp(std::ostream &os) {
     for (auto& [k,v] : experiments) {
@@ -82,7 +84,7 @@ class scratch {
       const char *scratch_table_stmt =
         "CREATE TABLE IF NOT EXISTS scratch_experiments("
         "id INTEGER PRIMARY KEY ASC, "
-        "exp_name TEXT, "
+        "exp_name TEXT UNIQUE, "
         "exp_archived BOOLEAN, "
         "exp_data BLOB" // contains .tar.gz if archived, pathname otherwise
         ");";
@@ -91,7 +93,8 @@ class scratch {
       sqlite3_step(stmt);
       sqlite3_finalize(stmt);
     }
-    void add_archive(const char *name, const void *archive_data, bool exp_archived, int n_bytes) {
+    // TODO: break this up into add_exp and archive_exp
+    /*void add_archive(const char *name, const void *archive_data, bool exp_archived, int n_bytes) {
       sqlite3_stmt *stmt;
       const char *exp_archived_str = (exp_archived) ? "TRUE" : "FALSE";
       const char *stmt_text = "INSERT INTO scratch_experiments VALUES(NULL, ?1, ?2, ?3)";
@@ -101,16 +104,35 @@ class scratch {
       sqlite3_bind_blob(stmt, 3, archive_data, n_bytes, SQLITE_STATIC);
       sqlite3_step(stmt);
       sqlite3_finalize(stmt);
+    }*/
+    void add_exp(const char *name, const char *exp_root) {
+      sqlite3_stmt *stmt;
+      const char *stmt_text = "INSERT INTO scratch_experiments VALUES(NULL, ?1, FALSE, ?2)";
+      sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
+      sqlite3_bind_text(stmt, 1, name, std::strlen(name), SQLITE_STATIC);
+      sqlite3_bind_blob(stmt, 2, (const void*)exp_root, std::strlen(exp_root), SQLITE_STATIC);
+      sqlite3_step(stmt);
+      sqlite3_finalize(stmt);
+    }
+    void archive_exp(const char *name, const void *archive_data, int n_bytes) {
+      sqlite3_stmt *stmt;
+      const char *stmt_text = "UPDATE scratch_experiments SET exp_archived=TRUE, exp_data=?1 WHERE exp_name = ?2";
+      sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
+      sqlite3_bind_blob(stmt, 1, archive_data, n_bytes, SQLITE_STATIC);
+      sqlite3_bind_text(stmt, 2, name, std::strlen(name), SQLITE_STATIC);
+      sqlite3_step(stmt);
+      sqlite3_finalize(stmt);
     }
     std::pair<void*,size_t> extract_archive(const char *name) {
       sqlite3_stmt *stmt;
-      const char *stmt_text = "SELECT exp_data FROM scratch_experiments WHERE name=?1";
+      const char *stmt_text = "SELECT exp_data FROM scratch_experiments WHERE exp_name=?1";
       sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
       sqlite3_bind_text(stmt, 1, name, std::strlen(name), SQLITE_STATIC);
       sqlite3_step(stmt);
       const void *exp_data = sqlite3_column_blob(stmt, 0);
       size_t exp_data_len = sqlite3_column_bytes(stmt, 0);
-      void *_exp_data = memcpy(_exp_data, exp_data, exp_data_len);
+      void *_exp_data = malloc(exp_data_len);
+      memcpy(_exp_data, exp_data, exp_data_len);
       sqlite3_finalize(stmt);
       return {_exp_data, exp_data_len};
     }
