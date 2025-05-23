@@ -6,3 +6,5 @@ scratch
 zoo
 dashboard
 sktree (skill tree)
+msrp (mental serialization/representation project)
+topicdb
