@@ -8,3 +8,4 @@ dashboard
 sktree (skill tree)
 msrp (mental serialization/representation project)
 topicdb
+stn (STructured Notes)

@@ -6,4 +6,5 @@ project(SSAK VERSION 0.1.0)
 find_package(LibArchive REQUIRED)
 find_package(SQLite3 REQUIRED)
 
+add_subdirectory(src/tools)
 add_subdirectory(test)
