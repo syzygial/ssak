@@ -17,7 +17,7 @@ namespace scratch {
 
 class scratch {
   public:
-  scratch() : sqlite3_conn("test.db"), experiments(sqlite3_conn.get_info()) {}
+  scratch(const char *db_name) : sqlite3_conn(db_name), experiments(sqlite3_conn.get_info()) {}
   void create_exp(const char *name) {
     fs::path exp_path(std::string(Config::Global()["exp_root"]) + "/" + std::string(name));
     fs::create_directory(exp_path);
