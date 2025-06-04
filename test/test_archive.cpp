@@ -1,3 +1,3 @@
-int test_ssak_archive() {
+int test_archive() {
   return 0;
 }

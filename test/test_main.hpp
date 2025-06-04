@@ -45,8 +45,11 @@ class TestHarness {
 // test_sqlite.cpp prototypes
 int test_sqlite_conn();
 
-// tools/test_archive.cpp prototypes
-int test_ssak_archive();
+// test_archive.cpp prototypes
+int test_archive();
+
+// tools/test_scratch.cpp prototypes
+int test_ssak_scratch();
 
 #define REGISTER_TEST_SQLITE \
 do {\
@@ -55,7 +58,13 @@ do {\
 
 #define REGISTER_TEST_ARCHIVE \
 do {\
-  TestHarness::inst()->add_test(test_ssak_archive);\
+  TestHarness::inst()->add_test(test_archive);\
 } while(0)
+
+#define REGISTER_TEST_TOOLS_SCRATCH \
+do {\
+  TestHarness::inst()->add_test(test_ssak_scratch);\
+} while(0)
+
 
 #endif
