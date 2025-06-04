@@ -53,7 +53,7 @@ do {\
   TestHarness::inst()->add_test(test_sqlite_conn);\
 } while(0)
 
-#define REGISTER_TEST_TOOLS_ARCHIVE \
+#define REGISTER_TEST_ARCHIVE \
 do {\
   TestHarness::inst()->add_test(test_ssak_archive);\
 } while(0)
