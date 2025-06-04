@@ -1,6 +1,7 @@
 #ifndef _TEST_MAIN
 #define _TEST_MAIN
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <vector>
