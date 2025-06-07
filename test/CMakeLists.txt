@@ -1,7 +1,8 @@
 SET(TEST_FILES
   test_sqlite.cpp
   test_archive.cpp
-  tools/test_scratch.cpp)
+  tools/test_scratch.cpp
+  util/test_tmpfiles.cpp)
 
 SET(SRC_FILES
 ${PROJECT_SOURCE_DIR}/src/archive.cpp
