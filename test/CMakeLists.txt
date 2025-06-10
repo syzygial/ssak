@@ -1,4 +1,5 @@
 SET(TEST_FILES
+  test_config.cpp
   test_sqlite.cpp
   test_archive.cpp
   tools/test_scratch.cpp

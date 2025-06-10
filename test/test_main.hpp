@@ -42,6 +42,9 @@ class TestHarness {
   unsigned int n_tests() {return this->test_list.size();}
 };
 
+// test_config.cpp prototypes
+int test_config();
+
 // test_sqlite.cpp prototypes
 int test_sqlite_conn();
 
@@ -53,6 +56,11 @@ int test_ssak_scratch();
 
 // util/test_tmpfiles.cpp prototypes
 int test_util_tmpfiles();
+
+#define REGISTER_TEST_CONFIG \
+do {\
+  TestHarness::inst()->add_test(test_config);\
+} while(0)
 
 #define REGISTER_TEST_SQLITE \
 do {\
@@ -74,4 +82,12 @@ do {\
   TestHarness::inst()->add_test(test_util_tmpfiles);\
 } while(0)
 
+#define REGISTER_TESTS \
+do {\
+  REGISTER_TEST_CONFIG;\
+  REGISTER_TEST_SQLITE;\
+  REGISTER_TEST_ARCHIVE;\
+  REGISTER_TEST_TOOLS_SCRATCH;\
+  REGISTER_TEST_UTIL_TMPFILES;\
+} while(0)
 #endif

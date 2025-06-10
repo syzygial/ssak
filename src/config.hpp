@@ -23,12 +23,17 @@ namespace ssak {
     void parse_config_file() {
       //unsigned int fsize = fs::file_size(config_file);
       std::ifstream config_stream(this->config_file, std::ios::in);
-      static const std::string empty_re = R"(^[ ]*$)";
-      static const std::string section_re = R"(^[(\w)\.(\w)]$)";
-      static const std::string val_re = R"((\w)=(\w))";
+      static const std::regex empty_re(R"(^[ ]*$)");
+      static const std::regex section_re(R"(^[((?\w)(?\.(\w))*)]$)");
+      static const std::regex val_re(R"((\w)=(\w))");
+      std::smatch m;
       std::string line;
+      std::string current_section;
       while (std::getline(config_stream, line)) {
-
+        if (std::regex_search(line, m, empty_re)) continue;
+        else if (std::regex_search(line, m, section_re)) this->config_attrs[m[0]] = m[1];
+        else if (std::regex_search(line, m, val_re)) current_section = m[0];
+        else continue;
       }
     }
     std::string config_file = "~/.ssak.conf";
