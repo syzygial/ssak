@@ -2,8 +2,10 @@
 #define SSAK_CONFIG_HPP
 
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <map>
+#include <regex>
 
 namespace fs = std::filesystem;
 
@@ -19,9 +21,17 @@ namespace ssak {
     }
     private:
     void parse_config_file() {
-      unsigned int fsize = fs::file_size(config_file);
+      //unsigned int fsize = fs::file_size(config_file);
+      std::ifstream config_stream(this->config_file, std::ios::in);
+      static const std::string empty_re = R"(^[ ]*$)";
+      static const std::string section_re = R"(^[(\w)\.(\w)]$)";
+      static const std::string val_re = R"((\w)=(\w))";
+      std::string line;
+      while (std::getline(config_stream, line)) {
+
+      }
     }
-    std::string config_file = "~/.ssak/config";
+    std::string config_file = "~/.ssak.conf";
     std::map<std::string,std::string> config_attrs;
   };
 }
