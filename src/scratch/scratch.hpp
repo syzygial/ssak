@@ -51,6 +51,7 @@ class scratch {
     fs::remove_all(archive_exp_info.exp_root);
     archive_exp_info.exp_root = fs::path();
     archive_exp_info.is_archived = true;
+    if (exp_blob != nullptr) free(exp_blob);
   }
   void extract_exp(const char *name, const std::string& dir) {
     auto& _exp_info = experiments.at(name);
