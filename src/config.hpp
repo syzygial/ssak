@@ -24,15 +24,18 @@ namespace ssak {
       //unsigned int fsize = fs::file_size(config_file);
       std::ifstream config_stream(this->config_file, std::ios::in);
       static const std::regex empty_re(R"(^[ ]*$)");
-      static const std::regex section_re(R"(^[((?\w)(?\.(\w))*)]$)");
-      static const std::regex val_re(R"((\w)=(\w))");
+      static const std::regex section_re(R"(^\s*\[\s*((?:\w+)(?:\.\w+)*)\s*\]$)");
+      static const std::regex val_re(R"(^\s*(\w+)\s*=\s*(\w+)\s*$)");
       std::smatch m;
       std::string line;
       std::string current_section;
       while (std::getline(config_stream, line)) {
         if (std::regex_search(line, m, empty_re)) continue;
-        else if (std::regex_search(line, m, section_re)) this->config_attrs[m[0]] = m[1];
-        else if (std::regex_search(line, m, val_re)) current_section = m[0];
+        else if (std::regex_search(line, m, val_re)) {
+          if (current_section.empty()) this->config_attrs[m[1]] = m[2];
+          else this->config_attrs[current_section + "." + (std::string)m[1]] = m[2];
+        }
+        else if (std::regex_search(line, m, section_re)) current_section = m[1];
         else continue;
       }
     }

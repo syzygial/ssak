@@ -53,6 +53,7 @@ tmpdir& operator<<(const char *rhs) {
 }
 
 const fs::path& get_root_dir() const {return this->root_dir;}
+fs::path get_file_path(const char *fname) {return this->root_dir / fname;}
 
 private:
 fs::path root_dir;
