@@ -12,7 +12,8 @@ namespace fs = std::filesystem;
 namespace ssak {
   class Config {
     public:
-    Config() {parse_config_file();}
+    //Config() {parse_config_file();}
+    Config() : Config(std::string()) {}
     Config(std::string s) : config_file(s) {parse_config_file();}
     const char* operator[] (const char* index) const {return (this->config_attrs).at(index).c_str();}
     static Config& Global() {

@@ -1,4 +1,5 @@
 SET(TEST_FILES
+  test_args.cpp
   test_config.cpp
   test_sqlite.cpp
   test_archive.cpp

@@ -42,6 +42,9 @@ class TestHarness {
   unsigned int n_tests() {return this->test_list.size();}
 };
 
+// test_args.cpp prototypes
+int test_args();
+
 // test_config.cpp prototypes
 int test_config();
 
@@ -56,6 +59,11 @@ int test_ssak_scratch();
 
 // util/test_tmpfiles.cpp prototypes
 int test_util_tmpfiles();
+
+#define REGISTER_TEST_ARGS \
+do {\
+  TestHarness::inst()->add_test(test_args);\
+} while(0)
 
 #define REGISTER_TEST_CONFIG \
 do {\
