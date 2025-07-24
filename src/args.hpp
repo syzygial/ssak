@@ -11,16 +11,21 @@
 
 namespace ssak {
 
+typedef enum {
+  STORE=1
+} arg_action;
+
 template
-<typename key_type=std::string, typename value_type=std::variant<char*,int> >
+<typename key_type=std::string, typename value_type=std::variant<bool,char*,int,std::vector<char*>,std::vector<int> > >
 class arg_parser {
 public:
+using nargs_type = std::variant<char*,int>;
 //using value_type = std::variant<char*,int>;
 arg_parser() {}
 void add_argument(std::optional<std::string> short_name,
     std::optional<std::string> long_name,
     std::optional<std::string> dest_name,
-    value_type nargs,
+    nargs_type nargs,
     const std::type_info& arg_type) {
   if (!this->valid_arg(short_name, long_name, dest_name, nargs, arg_type)) return;
   if (short_name == std::nullopt) short_name = std::string();
@@ -38,14 +43,20 @@ void add_argument(std::optional<std::string> short_name,
 std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
   std::map<std::string, value_type> parsed_args;
   for (auto a : this->arguments) {
-    if (this->match(a, argv) == 0) continue;
+    unsigned int matched_args = this->match(a, argv);
+    if (matched_args == 0) continue;
+
+    if ()
+
+    argc -= matched_args;
+    argv += matched_args;
   }
   return parsed_args;
 }
 
 private:
 struct argument {
-  argument(std::string short_name, std::string long_name, std::string dest_name, value_type nargs, const std::type_info& arg_type) : 
+  argument(std::string short_name, std::string long_name, std::string dest_name, nargs_type nargs, const std::type_info& arg_type) : 
     short_name(short_name),
     long_name(long_name),
     dest_name(dest_name),
