@@ -42,11 +42,12 @@ void add_argument(std::optional<std::string> short_name,
 }
 std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
   std::map<std::string, value_type> parsed_args;
+  this->initialize_args(parsed_args);
   for (auto a : this->arguments) {
     unsigned int matched_args = this->match(a, argv);
     if (matched_args == 0) continue;
 
-    if ()
+    //if ()
 
     argc -= matched_args;
     argv += matched_args;
@@ -66,7 +67,7 @@ struct argument {
   std::string long_name;
   std::string dest_name;
   std::string dest;
-  value_type nargs;
+  nargs_type nargs;
   const std::type_info& arg_type;
 };
 unsigned int match(const argument& arg, char* const* argv) {
@@ -79,9 +80,12 @@ unsigned int match(const argument& arg, char* const* argv) {
   else;
   return 0;
 }
-bool valid_arg(std::optional<std::string> short_name, std::optional<std::string> long_name, std::optional<std::string> dest_name, value_type nargs, const std::type_info& arg_type) {
+bool valid_arg(std::optional<std::string> short_name, std::optional<std::string> long_name, std::optional<std::string> dest_name, nargs_type nargs, const std::type_info& arg_type) {
   // TODO: check validity of parameters
   return true;
+}
+void initialize_args(std::map<key_type, value_type>& args) {
+
 }
 std::vector<argument> arguments;
 };
