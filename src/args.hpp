@@ -3,6 +3,7 @@
 
 #include <map>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <typeinfo>
@@ -10,6 +11,16 @@
 #include <vector>
 
 namespace ssak {
+
+class bad_argument : public std::runtime_error {
+
+public:
+bad_argument() : std::runtime_error(default_what) {}
+bad_argument(std::string what_arg) : std::runtime_error(what_arg) {}
+private:
+static constexpr char default_what[] = "Ill-formed command-line argument spec";
+
+};
 
 typedef enum {
   STORE=1
@@ -28,7 +39,7 @@ void add_argument(std::optional<std::string> short_name,
     nargs_type nargs,
     const std::type_info& arg_type,
     bool required) {
-  if (!this->valid_arg(short_name, long_name, dest_name, nargs, arg_type)) return;
+  if (!this->valid_arg(short_name, long_name, dest_name, nargs, arg_type)) throw bad_argument();
   if (short_name == std::nullopt) short_name = std::string();
   if (long_name == std::nullopt) long_name = std::string();
   if (dest_name == std::nullopt) {
@@ -44,10 +55,10 @@ void add_argument(std::optional<std::string> short_name,
 std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
   std::map<std::string, value_type> parsed_args;
   this->initialize_args(parsed_args);
-  for (auto a : this->arguments) {
+  for (auto& a : this->arguments) {
     unsigned int matched_args = this->match(a, argv);
     if (matched_args == 0) continue;
-
+    this->parse_arg(a, argv, matched_args);
     //if ()
 
     argc -= matched_args;
@@ -88,6 +99,9 @@ bool valid_arg(std::optional<std::string> short_name, std::optional<std::string>
   return true;
 }
 void initialize_args(std::map<key_type, value_type>& args) {
+
+}
+void parse_arg(const argument& matched_arg, char* const* argv, int args_matched) {
 
 }
 std::vector<argument> arguments;
