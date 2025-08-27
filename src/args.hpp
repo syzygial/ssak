@@ -26,7 +26,8 @@ void add_argument(std::optional<std::string> short_name,
     std::optional<std::string> long_name,
     std::optional<std::string> dest_name,
     nargs_type nargs,
-    const std::type_info& arg_type) {
+    const std::type_info& arg_type,
+    bool required) {
   if (!this->valid_arg(short_name, long_name, dest_name, nargs, arg_type)) return;
   if (short_name == std::nullopt) short_name = std::string();
   if (long_name == std::nullopt) long_name = std::string();
@@ -37,7 +38,7 @@ void add_argument(std::optional<std::string> short_name,
   auto dest_start = dest_name.value().begin();
   while ((*dest_start) == '-') dest_start++;
   dest_name = std::string(dest_start, dest_name.value().end());
-  argument new_arg(short_name.value(), long_name.value(), dest_name.value(), nargs, arg_type);
+  argument new_arg(short_name.value(), long_name.value(), dest_name.value(), nargs, arg_type, required);
   this->arguments.push_back(new_arg);
 }
 std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
@@ -57,18 +58,20 @@ std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
 
 private:
 struct argument {
-  argument(std::string short_name, std::string long_name, std::string dest_name, nargs_type nargs, const std::type_info& arg_type) : 
+  argument(std::string short_name, std::string long_name, std::string dest_name, nargs_type nargs, const std::type_info& arg_type, bool required) : 
     short_name(short_name),
     long_name(long_name),
     dest_name(dest_name),
     nargs(nargs),
-    arg_type(arg_type) {}
+    arg_type(arg_type),
+    required(required) {}
   std::string short_name;
   std::string long_name;
   std::string dest_name;
   std::string dest;
   nargs_type nargs;
   const std::type_info& arg_type;
+  bool required;
 };
 unsigned int match(const argument& arg, char* const* argv) {
   //if (arg.short_name.starts_with("--"));

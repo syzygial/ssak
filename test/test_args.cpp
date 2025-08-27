@@ -4,8 +4,8 @@
 
 int test_args() {
   ssak::arg_parser p;
-  p.add_argument("-a", std::nullopt, std::nullopt, 0, typeid(std::string));
-  p.add_argument("-t", "--test", std::nullopt, (char*)"+", typeid(int));
+  p.add_argument("-a", std::nullopt, std::nullopt, 0, typeid(std::string), false);
+  p.add_argument("-t", "--test", std::nullopt, (char*)"+", typeid(int), false);
   char* const argv1[] = {(char*)"--test", NULL};
   constexpr int argc1 = (sizeof(argv1) / sizeof(char*)) - 1;
   p.parse_args(argc1, argv1);
