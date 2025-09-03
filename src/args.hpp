@@ -75,14 +75,15 @@ public:
 using nargs_type = std::variant<char*,int>;
 //using value_type = std::variant<char*,int>;
 arg_parser() {}
+
+template<typename T>
 void add_argument(std::optional<std::string> short_name,
     std::optional<std::string> long_name,
     std::optional<std::string> dest_name,
     nargs_type nargs,
-    const std::type_info& arg_type,
     bool required,
     arg_action action) {
-  if (!this->valid_arg(short_name, long_name, dest_name, nargs, arg_type)) throw bad_argument();
+  if (!this->valid_arg(short_name, long_name, dest_name, nargs)) throw bad_argument();
   if (short_name == std::nullopt) short_name = std::string();
   if (long_name == std::nullopt) long_name = std::string();
   if (dest_name == std::nullopt) {
@@ -92,7 +93,7 @@ void add_argument(std::optional<std::string> short_name,
   auto dest_start = dest_name.value().begin();
   while ((*dest_start) == '-') dest_start++;
   dest_name = std::string(dest_start, dest_name.value().end());
-  argument new_arg(short_name.value(), long_name.value(), dest_name.value(), nargs, arg_type, required, action);
+  argument<T> new_arg(short_name.value(), long_name.value(), dest_name.value(), nargs, required, action);
   this->arguments.push_back(new_arg);
 }
 std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
@@ -111,22 +112,24 @@ std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
 }
 
 private:
+template<typename T>
 struct argument {
-  argument(std::string short_name, std::string long_name, std::string dest_name, nargs_type nargs, const std::type_info& arg_type, bool required, arg_action action) : 
+  argument(std::string short_name, std::string long_name, std::string dest_name, nargs_type nargs, bool required, arg_action action) : 
     short_name(short_name),
     long_name(long_name),
     dest_name(dest_name),
     nargs(nargs),
-    arg_type(arg_type),
     action(action),
     required(required) {
       this->positional = !(this->long_name.starts_with("-"));
     }
+
+  using arg_type = T;
+
   std::string short_name;
   std::string long_name;
   std::string dest_name;
   nargs_type nargs;
-  const std::type_info& arg_type;
   bool required;
   bool positional;
   arg_action action;
@@ -141,7 +144,7 @@ unsigned int match(const argument& arg, char* const* argv) {
   else;
   return 0;
 }
-bool valid_arg(std::optional<std::string> short_name, std::optional<std::string> long_name, std::optional<std::string> dest_name, nargs_type nargs, const std::type_info& arg_type) {
+bool valid_arg(std::optional<std::string> short_name, std::optional<std::string> long_name, std::optional<std::string> dest_name, nargs_type nargs) {
   // TODO: check validity of parameters
   return true;
 }
