@@ -3,7 +3,6 @@
 
 #include <any>
 #include <cstring>
-#include <cstdlib>
 #include <map>
 #include <memory>
 #include <optional>
@@ -86,7 +85,7 @@ constexpr int variant_index_by_type_v = variant_index_by_type<var_type, T>();
   class valid_arg_type<int> : public std::true_type{};
 
   template<>
-  class valid_arg_type<char*> : public std::true_type{};
+  class valid_arg_type<std::string_view> : public std::true_type{};
 
   template<typename T>
   constexpr bool valid_arg_type_v = valid_arg_type<T>::value;
@@ -113,7 +112,7 @@ class arg_parser {
   public:
   using nargs_type = std::variant<int,std::pair<int,int> >;
   using key_type = std::string;
-  using value_type = std::variant<bool,char*,int,std::vector<char*>,std::vector<int> >;
+  using value_type = std::variant<bool,std::string_view,int,std::vector<std::string_view>,std::vector<int> >;
   //using value_type = std::variant<char*,int>;
   arg_parser() {}
 
@@ -160,7 +159,7 @@ class arg_parser {
   }
 
   private:
-  using value_tag = enum {BOOL=0, CSTR, INT, CSTR_VEC, INT_VEC};
+  using value_tag = enum {BOOL=0, SV, INT, SV_VEC, INT_VEC};
   struct argument {
     argument(std::string short_name, std::string long_name, std::string dest_name, nargs_type nargs, bool required, arg_action action, const int var_index) : 
       short_name(short_name),
@@ -213,14 +212,14 @@ class arg_parser {
       if (a.var_index == BOOL) { // bool
         args[a.dest_name] = bool();
       }
-      else if (a.var_index == CSTR) { // char*
-        args[a.dest_name] = (char*)nullptr;
+      else if (a.var_index == SV) { // std::string_view
+        args[a.dest_name] = std::string_view{};
       }
       else if (a.var_index == INT) { // int
         args[a.dest_name] = int();
       }
-      else if (a.var_index == CSTR_VEC) { // std::vector<char*>
-        args[a.dest_name] = std::vector<char*>{};
+      else if (a.var_index == SV_VEC) { // std::vector<std::string_view>
+        args[a.dest_name] = std::vector<std::string_view>{};
       }
       else if (a.var_index == INT_VEC) { // std::vector<int>
         args[a.dest_name] = std::vector<int>{};
@@ -233,21 +232,33 @@ class arg_parser {
     }
   }
   void parse_arg(std::map<key_type, value_type>& args_map, const argument& matched_arg, char* const* argv, int args_matched) {
+    if (!matched_arg.positional) argv++;
     if (matched_arg.action == STORE_TRUE) args_map[matched_arg.dest_name] = true;
     else if (matched_arg.action == STORE_FALSE) args_map[matched_arg.dest_name] = false;
-    else if (matched_arg.action == STORE) args_map[matched_arg.dest_name] = this->convert_arg(matched_arg, *argv);
+    else if (matched_arg.action == STORE) {
+      if (matched_arg.var_index == SV_VEC) { // std::vector<std::string_view>
+        for (int i = 0; i < args_matched; i++) {
+          std::get<SV_VEC>(args_map[matched_arg.dest_name]).push_back(std::get<SV>(this->convert_arg(matched_arg, *(argv+i))));
+        }
+      }
+      else if (matched_arg.var_index == INT_VEC) { // std::vector<int>
+        for (int i = 0; i < args_matched; i++) {
+          std::get<INT_VEC>(args_map[matched_arg.dest_name]).push_back(std::get<INT>(this->convert_arg(matched_arg, *(argv+i))));
+        }
+      }
+      else args_map[matched_arg.dest_name] = this->convert_arg(matched_arg, *argv);
+    }
   }
   value_type convert_arg(const argument& a, const char* arg) {
-    if (a.var_index == CSTR || a.var_index == CSTR_VEC) { // char* || std::vector<char*>
-
+    if (a.var_index == SV || a.var_index == SV_VEC) { // std::string_view || std::vector<std::string_view>
+      return std::string_view(arg);
     }
     else if (a.var_index == INT || a.var_index == INT_VEC) { // int || std::vector<int>
-
+      return std::stoi(arg);
     }
     else { // bad variant
-
+      throw bad_argument{};
     }
-    return (char*)nullptr;
   }
   bool is_arg(const std::string_view& s) {
     for (auto& a : this->arguments) {
