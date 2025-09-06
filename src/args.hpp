@@ -169,7 +169,12 @@ class arg_parser {
       action(action),
       required(required),
       var_index(var_index) {
-        this->positional = !(this->long_name.starts_with("-"));
+        if (!this->long_name.empty()) {
+          this->positional = !(this->long_name.starts_with("-"));
+        }
+        else {
+          this->positional = !(this->short_name.starts_with("-"));
+        }
       }
     std::string short_name;
     std::string long_name;
