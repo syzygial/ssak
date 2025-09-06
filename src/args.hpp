@@ -11,6 +11,7 @@
 #include <typeinfo>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -73,6 +74,21 @@ constexpr int variant_index_by_type() {
 template<typename var_type, typename T>
 constexpr int variant_index_by_type_v = variant_index_by_type<var_type, T>();
 
+  template<typename T>
+  class valid_arg_type : public std::false_type {};
+
+  template<>
+  class valid_arg_type<bool> : public std::true_type{};
+
+  template<>
+  class valid_arg_type<int> : public std::true_type{};
+
+  template<>
+  class valid_arg_type<char> : public std::true_type{};
+
+  template<typename T>
+  constexpr bool valid_arg_type_v = valid_arg_type<T>::value;
+
 } // namespace detail
 
 class bad_argument : public std::runtime_error {
@@ -93,7 +109,7 @@ typedef enum {
 
 class arg_parser {
   public:
-  using nargs_type = std::variant<char*,int>;
+  using nargs_type = std::variant<int,std::pair<int,int> >;
   using key_type = std::string;
   using value_type = std::variant<bool,char*,int,std::vector<char*>,std::vector<int> >;
   //using value_type = std::variant<char*,int>;
@@ -116,6 +132,7 @@ class arg_parser {
     auto dest_start = dest_name.value().begin();
     while ((*dest_start) == '-') dest_start++;
     dest_name = std::string(dest_start, dest_name.value().end());
+    if (!detail::valid_arg_type_v<T>) throw bad_argument{};
     const int arg_index = detail::variant_index_by_type_v<value_type, T>;
 
     argument new_arg(short_name.value(), long_name.value(), dest_name.value(), nargs, required, action, arg_index);
@@ -127,17 +144,18 @@ class arg_parser {
     this->initialize_args(parsed_args);
     for (auto& a : this->arguments) {
       unsigned int matched_args = this->match(a, argv);
-      if (matched_args == 0) continue;
+      if (matched_args == -1) continue;
       this->parse_arg(parsed_args, a, argv, matched_args);
       //if ()
 
-      argc -= matched_args;
-      argv += matched_args;
+      argc -= (matched_args+1);
+      argv += (matched_args+1);
     }
     return parsed_args;
   }
 
   private:
+  using value_tag = enum {BOOL=0, CSTR, INT, CSTR_VEC, INT_VEC};
   struct argument {
     argument(std::string short_name, std::string long_name, std::string dest_name, nargs_type nargs, bool required, arg_action action, const int var_index) : 
       short_name(short_name),
@@ -159,15 +177,24 @@ class arg_parser {
     const int var_index;
   };
 
-  unsigned int match(const argument& arg, char* const* argv) {
-    //if (arg.short_name.starts_with("--"));
-    #include <iostream>
-    if (!arg.long_name.empty() && (std::string_view(*argv)).starts_with(arg.long_name)) {
-      std::cout << ":)" << std::endl;
+  int match(const argument& arg, char* const* argv) {
+    bool match_found = false;
+    int matched_args = -1;
+    if (!arg.long_name.empty() && (std::string_view(*argv)) == arg.long_name) {
+      match_found = true;
     }
-    else if (arg.short_name.starts_with("-"));
-    else;
-    return 0;
+    else if (std::string_view(*argv) == arg.short_name) {
+      match_found = true;
+    }
+    if (match_found) {
+      matched_args++;
+      while (*argv != nullptr && !is_arg(*argv) && valid_nargs(matched_args + 1, arg.nargs, true)) {
+        argv++;
+        matched_args++;
+      }
+      if (!valid_nargs(matched_args, arg.nargs, false)) throw bad_argument{};
+    }
+    return matched_args;
   }
   bool valid_arg(std::optional<std::string> short_name, std::optional<std::string> long_name, std::optional<std::string> dest_name, nargs_type nargs) {
     // TODO: check validity of parameters
@@ -177,19 +204,19 @@ class arg_parser {
     // TODO: kind of greasy but it is what it is.. maybe there is a template metaprogramming way to do this.
     // basically, initialize based on add_argument template parameter
     for (auto& a: this->arguments) {
-      if (a.var_index == 0) { // bool
+      if (a.var_index == BOOL) { // bool
         args[a.dest_name] = bool();
       }
-      else if (a.var_index == 1) { // char*
+      else if (a.var_index == CSTR) { // char*
         args[a.dest_name] = (char*)nullptr;
       }
-      else if (a.var_index == 2) { // int
+      else if (a.var_index == INT) { // int
         args[a.dest_name] = int();
       }
-      else if (a.var_index == 3) { // std::vector<char*>
+      else if (a.var_index == CSTR_VEC) { // std::vector<char*>
         args[a.dest_name] = std::vector<char*>{};
       }
-      else if (a.var_index == 4) { // std::vector<int>
+      else if (a.var_index == INT_VEC) { // std::vector<int>
         args[a.dest_name] = std::vector<int>{};
       }
       else { // bad variant
@@ -204,9 +231,51 @@ class arg_parser {
     else if (matched_arg.action == STORE_FALSE) args_map[matched_arg.dest_name] = false;
     else if (matched_arg.action == STORE) args_map[matched_arg.dest_name] = this->convert_arg(matched_arg, *argv);
   }
-  value_type convert_arg(const argument& arg_spec, const char* arg) {
-    // TODO: write arg conversion function
+  value_type convert_arg(const argument& a, const char* arg) {
+    if (a.var_index == BOOL) { // bool
+
+    }
+    else if (a.var_index == CSTR) { // char*
+
+    }
+    else if (a.var_index == INT) { // int
+
+    }
+    else if (a.var_index == CSTR_VEC) { // std::vector<char*>
+
+    }
+    else if (a.var_index == INT_VEC) { // std::vector<int>
+
+    }
+    else { // bad variant
+
+    }
     return (char*)nullptr;
+  }
+  bool is_arg(const std::string_view& s) {
+    for (auto& a : this->arguments) {
+      if (!a.long_name.empty() && s == a.long_name) return true;
+      if (!a.short_name.empty() && s == a.short_name) return true;
+    }
+    return false;
+  }
+  bool valid_nargs(int args_matched, const nargs_type& nargs_str, bool counting) {
+    if (std::holds_alternative<int>(nargs_str)) {
+      if (counting) return args_matched <= std::get<int>(nargs_str);
+      else return args_matched == std::get<int>(nargs_str);
+    }
+    auto [min_nargs, max_nargs] = std::get<std::pair<int,int> >(nargs_str);
+    if (min_nargs == -1) {
+      return args_matched <= max_nargs;
+    }
+    else if (max_nargs == -1) {
+      if (counting) return true;
+      else return args_matched >= min_nargs;
+    }
+    else {
+      if (counting) return args_matched <= max_nargs;
+      else return (args_matched >= min_nargs) && (args_matched <= max_nargs);
+    }
   }
   std::vector<argument> arguments;
 };
