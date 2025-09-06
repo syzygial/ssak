@@ -2,6 +2,8 @@
 #define SSAK_ARGS_HPP
 
 #include <any>
+#include <cstring>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <optional>
@@ -133,7 +135,10 @@ class arg_parser {
     while ((*dest_start) == '-') dest_start++;
     dest_name = std::string(dest_start, dest_name.value().end());
     if (!detail::valid_arg_type_v<T>) throw bad_argument{};
-    const int arg_index = detail::variant_index_by_type_v<value_type, T>;
+    const int max_nargs = this->max_nargs(nargs);
+    const int arg_index = (max_nargs > 1 || max_nargs == -1) ?
+      detail::variant_index_by_type_v<value_type, T> + 2 : // std::vector<T>
+      detail::variant_index_by_type_v<value_type, T>; // T
 
     argument new_arg(short_name.value(), long_name.value(), dest_name.value(), nargs, required, action, arg_index);
     //auto new_arg = std::unique_ptr<const argument>(new const argument(short_name.value(), long_name.value(), dest_name.value(), nargs, required, action, arg_index));
@@ -233,19 +238,10 @@ class arg_parser {
     else if (matched_arg.action == STORE) args_map[matched_arg.dest_name] = this->convert_arg(matched_arg, *argv);
   }
   value_type convert_arg(const argument& a, const char* arg) {
-    if (a.var_index == BOOL) { // bool
+    if (a.var_index == CSTR || a.var_index == CSTR_VEC) { // char* || std::vector<char*>
 
     }
-    else if (a.var_index == CSTR) { // char*
-
-    }
-    else if (a.var_index == INT) { // int
-
-    }
-    else if (a.var_index == CSTR_VEC) { // std::vector<char*>
-
-    }
-    else if (a.var_index == INT_VEC) { // std::vector<int>
+    else if (a.var_index == INT || a.var_index == INT_VEC) { // int || std::vector<int>
 
     }
     else { // bad variant
@@ -277,6 +273,16 @@ class arg_parser {
       if (counting) return args_matched <= max_nargs;
       else return (args_matched >= min_nargs) && (args_matched <= max_nargs);
     }
+  }
+  int min_nargs(const nargs_type& nargs_str) {
+    if (std::holds_alternative<int>(nargs_str)) return std::get<int>(nargs_str);
+    else if (std::holds_alternative<std::pair<int, int> >(nargs_str)) return std::get<std::pair<int, int> >(nargs_str).first;
+    else throw bad_argument{};
+  }
+  int max_nargs(const nargs_type& nargs_str) {
+    if (std::holds_alternative<int>(nargs_str)) return std::get<int>(nargs_str);
+    else if (std::holds_alternative<std::pair<int, int> >(nargs_str)) return std::get<std::pair<int, int> >(nargs_str).second;
+    else throw bad_argument{};
   }
   std::vector<argument> arguments;
 };
