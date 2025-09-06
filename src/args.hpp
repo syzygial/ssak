@@ -84,7 +84,7 @@ constexpr int variant_index_by_type_v = variant_index_by_type<var_type, T>();
   class valid_arg_type<int> : public std::true_type{};
 
   template<>
-  class valid_arg_type<char> : public std::true_type{};
+  class valid_arg_type<char*> : public std::true_type{};
 
   template<typename T>
   constexpr bool valid_arg_type_v = valid_arg_type<T>::value;
@@ -187,6 +187,7 @@ class arg_parser {
       match_found = true;
     }
     if (match_found) {
+      argv++;
       matched_args++;
       while (*argv != nullptr && !is_arg(*argv) && valid_nargs(matched_args + 1, arg.nargs, true)) {
         argv++;
