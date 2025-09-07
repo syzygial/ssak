@@ -3,6 +3,7 @@
 
 #include <any>
 #include <cstring>
+#include <format>
 #include <map>
 #include <memory>
 #include <optional>
@@ -154,6 +155,9 @@ class arg_parser {
 
       argc -= (matched_args+1);
       argv += (matched_args+1);
+    }
+    if (argc > 0) {
+      throw bad_argument(std::format("Unknown argument {}", *argv));
     }
     return parsed_args;
   }
