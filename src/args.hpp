@@ -103,6 +103,8 @@ static constexpr char default_what[] = "Ill-formed command-line argument spec";
 
 };
 
+class bad_nargs : public std::runtime_error {};
+
 typedef enum {
   STORE=1,
   STORE_TRUE,
