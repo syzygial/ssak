@@ -3,6 +3,7 @@ SET(TEST_FILES
   test_config.cpp
   test_sqlite.cpp
   test_archive.cpp
+  test_util.cpp
   tools/test_scratch.cpp
   util/test_tmpfiles.cpp)
 

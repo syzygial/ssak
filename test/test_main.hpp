@@ -54,6 +54,9 @@ int test_sqlite_conn();
 // test_archive.cpp prototypes
 int test_archive();
 
+// test_util.cpp prototypes
+int test_util();
+
 // tools/test_scratch.cpp prototypes
 int test_ssak_scratch();
 
@@ -80,6 +83,11 @@ do {\
   TestHarness::inst()->add_test(test_archive);\
 } while(0)
 
+#define REGISTER_TEST_UTIL \
+do {\
+  TestHarness::inst()->add_test(test_util);\
+} while(0)
+
 #define REGISTER_TEST_TOOLS_SCRATCH \
 do {\
   TestHarness::inst()->add_test(test_ssak_scratch);\
@@ -96,6 +104,7 @@ do {\
   REGISTER_TEST_CONFIG;\
   REGISTER_TEST_SQLITE;\
   REGISTER_TEST_ARCHIVE;\
+  REGISTER_TEST_UTIL;\
   REGISTER_TEST_TOOLS_SCRATCH;\
   REGISTER_TEST_UTIL_TMPFILES;\
 } while(0)
