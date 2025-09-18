@@ -1,6 +1,7 @@
 #ifndef SSAK_UTIL_HPP
 #define SSAK_UTIL_HPP
 
+#include <initializer_list>
 #include <list>
 
 namespace ssak {
