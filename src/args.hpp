@@ -4,13 +4,13 @@
 #include <any>
 #include <cstring>
 #include <format>
+#include <list>
 #include <map>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <typeinfo>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -118,7 +118,8 @@ class arg_parser {
   using value_type = std::variant<bool,std::string_view,int,std::vector<std::string_view>,std::vector<int> >;
   //using value_type = std::variant<char*,int>;
   arg_parser() {}
-
+  arg_parser(std::string& prog_name) : prog_name(prog_name) {}
+  arg_parser(std::string_view prog_name) : prog_name(prog_name) {}
   template<typename T>
   void add_argument(std::optional<std::string> short_name,
       std::optional<std::string> long_name,
@@ -162,6 +163,22 @@ class arg_parser {
       throw bad_argument(std::format("Unknown argument {}", *argv));
     }
     return parsed_args;
+  }
+  int help_message(std::ostream& o) {
+    o << "usage: " << this->prog_name << " ";
+    std::list<std::reference_wrapper<argument> > positional_args;
+    for (auto& a : this->arguments) {
+      // display positional args last
+      if (a.positional) positional_args.push_back(a);
+      else {
+        this->format_arg_help(o, a);
+      }
+    }
+    for (auto &a : positional_args) {
+      this->format_arg_help(o, a);
+    }
+    o << std::endl;
+    return 0;
   }
 
   private:
@@ -306,7 +323,27 @@ class arg_parser {
     else if (std::holds_alternative<std::pair<int, int> >(nargs_str)) return std::get<std::pair<int, int> >(nargs_str).second;
     else throw bad_argument{};
   }
+  int format_arg_help(std::ostream& o, argument& a) {
+    char parens[2] = {0,0};
+    if (a.positional); // do nothing
+    else if (!a.required) {
+      parens[0] = '[', parens[1] = ']';
+    }
+    if (parens[0]) o << parens[0];
+
+    if (!a.long_name.empty()) {
+      o << a.long_name;
+    }
+    else if (!a.short_name.empty()) {
+      o << a.short_name;
+    }
+
+    if (parens[1]) o << parens[1];
+    o << " ";
+    return 0;
+  }
   std::vector<argument> arguments;
+  std::string prog_name;
 };
 
 } // namespace ssak
