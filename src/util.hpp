@@ -39,6 +39,49 @@ class tree {
       }
       return new_node;
     }
+    bool operator==(const node& rhs) const {
+      return this->val == rhs.val;
+    }
+    bool operator==(const T& rhs) const {
+      return this->val == rhs;
+    }
+    T& operator*() {
+      return this->val;
+    }
+    node& get_first_child() {
+      return *(this->first_child);
+    }
+    bool is_leaf() const {
+      return this->first_child == nullptr;
+    }
+
+    class SiblingItr {
+      public:
+      SiblingItr(node* start_node) : current_node(start_node) {}
+      node& operator*() {return *(this->current_node);}
+      node& operator++() {
+        this->current_node = this->current_node->next_sibling;
+        return *current_node;
+      }
+      node& operator++(int) {
+        node *prev_node = this->current_node;
+        ++(*this);
+        return *prev_node;
+      }
+      bool operator==(const SiblingItr& rhs) const {
+        return this->current_node == rhs->current_node;
+      }
+      bool operator==(const node& rhs) const {
+        return this->current_node == &rhs;
+      }
+      bool done() const {
+        return this->current_node == nullptr;
+      }
+      private:
+      node* current_node;
+    };
+
+    SiblingItr sibling_itr() {return SiblingItr(this);}
 
     private:
     node& add_node(T& v) {

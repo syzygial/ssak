@@ -150,12 +150,9 @@ class arg_parser {
   std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
     std::map<std::string, value_type> parsed_args;
     this->initialize_args(parsed_args);
+    if (argc == 0) return parsed_args;
     for (auto& a : this->arguments) {
       if (*argv == nullptr) break;
-      if ((std::string_view(*argv) == "-h") || std::string_view(*argv) == "--help") {
-        this->help_message(std::cout);
-        std::exit(0);
-      }
       unsigned int matched_args = this->match(a, argv);
       if (matched_args == -1) continue;
       this->parse_arg(parsed_args, a, argv, matched_args);
@@ -163,6 +160,10 @@ class arg_parser {
 
       argc -= (matched_args+1);
       argv += (matched_args+1);
+    }
+    if ((std::string_view(*argv) == "-h") || std::string_view(*argv) == "--help") {
+      this->help_message(std::cout);
+      std::exit(0);
     }
     if (argc > 0) {
       throw bad_argument(std::format("Unknown argument {}", *argv));
