@@ -161,11 +161,11 @@ class arg_parser {
       argc -= (matched_args+1);
       argv += (matched_args+1);
     }
-    if ((std::string_view(*argv) == "-h") || std::string_view(*argv) == "--help") {
-      this->help_message(std::cout);
-      std::exit(0);
-    }
     if (argc > 0) {
+      if ((std::string_view(*argv) == "-h") || std::string_view(*argv) == "--help") {
+        this->help_message(std::cout);
+        std::exit(0);
+      }
       throw bad_argument(std::format("Unknown argument {}", *argv));
     }
     return parsed_args;
