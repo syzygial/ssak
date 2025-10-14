@@ -147,7 +147,18 @@ class arg_parser {
     //auto new_arg = std::unique_ptr<const argument>(new const argument(short_name.value(), long_name.value(), dest_name.value(), nargs, required, action, arg_index));
     this->arguments.push_back(new_arg);
   }
-  std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
+  std::map<key_type, value_type> parse_args(int argc, char** argv) {
+    // check for -h/--help
+    char **argv_itr = argv;
+    while (*argv_itr != nullptr) {
+      std::string_view help_sv(*argv_itr);
+      if (help_sv == "-h" || help_sv == "--help") {
+        this->help_message(std::cout);
+        exit(0);
+      }
+      argv_itr++;
+    }
+
     std::map<std::string, value_type> parsed_args;
     this->initialize_args(parsed_args);
     //if (argc == 0) return parsed_args;
@@ -161,7 +172,7 @@ class arg_parser {
         }
         else continue;
       }
-      unsigned int matched_args = this->match(a, argv);
+      int matched_args = this->match(a, argv);
       if (matched_args == -1) {
         if (a.required) {
           missing_arg = true;
@@ -171,17 +182,21 @@ class arg_parser {
       }
       else {
         this->parse_arg(parsed_args, a, argv, matched_args);
+        if (a.positional) {
+          argc -= matched_args;
+          argv += matched_args;
+        }
+        else {
+          argc -= (matched_args+1);
+          argv += (matched_args+1);
+        }
       }
-      //if ()
-
-      argc -= (matched_args+1);
-      argv += (matched_args+1);
     }
     if (argc > 0) {
-      if ((std::string_view(*argv) == "-h") || std::string_view(*argv) == "--help") {
+      /*if ((std::string_view(*argv) == "-h") || std::string_view(*argv) == "--help") {
         this->help_message(std::cout);
         std::exit(0);
-      }
+      }*/
       throw bad_argument(std::format("Unknown argument {}", *argv));
     }
     if (missing_arg) throw bad_argument(std::format("missing argument {}", missing_arg_name));
@@ -236,14 +251,19 @@ class arg_parser {
     if (*argv == nullptr) return -1;
     bool match_found = false;
     int matched_args = -1;
-    if (!arg.long_name.empty() && (std::string_view(*argv)) == arg.long_name) {
+    if (arg.positional) {
+      if (*argv != nullptr && !is_arg(*argv)) {
+        match_found = true;
+      }
+    }
+    else if (!arg.long_name.empty() && std::string_view(*argv) == arg.long_name) {
       match_found = true;
     }
     else if (std::string_view(*argv) == arg.short_name) {
       match_found = true;
     }
     if (match_found) {
-      argv++;
+      if (!arg.positional) argv++;
       matched_args++;
       while (*argv != nullptr && !is_arg(*argv) && valid_nargs(matched_args + 1, arg.nargs, true)) {
         argv++;
