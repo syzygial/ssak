@@ -6,9 +6,9 @@
 #include "ssak_scratch.hpp"
 
 int main_verb(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
-  static const std::string commands_str = 
-  "commands:\n\n"
-  "ssak\n"
+  static const std::string commands_str =
+  "ssak\n\n"
+  "commands:\n"
   "  scratch: experiment scratchpad";
   std::cout << commands_str << std::endl;
   return 0;

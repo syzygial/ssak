@@ -2,6 +2,7 @@
 #define SSAK_TOOLS_SCRATCH_HPP
 
 #include "../args.hpp"
+#include "../exp_templates.hpp"
 #include "../verbs.hpp"
 #include "../scratch/scratch.hpp"
 
@@ -69,6 +70,8 @@ namespace ssak {
   // ssak scratch templates
   arg_parser ssak_scratch_templates_p("ssak scratch templates");
   int scratch_templates_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
+    std::cout << "Available templates:\n" << std::endl;
+    list_templates();
     return 0;
   }
   verb ssak_scratch_templates("templates", scratch_templates_verb_fn, ssak_scratch_templates_p);
