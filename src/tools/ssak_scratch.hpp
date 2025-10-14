@@ -17,7 +17,8 @@ namespace ssak {
     "  create\n"
     "  delete\n"
     "  list\n"
-    "  restore";
+    "  restore\n"
+    "  templates";
     std::cout << commands_str << std::endl;
     return 0;
   }
@@ -65,6 +66,12 @@ namespace ssak {
   }
   verb ssak_scratch_restore("restore", scratch_restore_verb_fn, ssak_scratch_restore_p);
 
+  // ssak scratch templates
+  arg_parser ssak_scratch_templates_p("ssak scratch templates");
+  int scratch_templates_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
+    return 0;
+  }
+  verb ssak_scratch_templates("templates", scratch_templates_verb_fn, ssak_scratch_templates_p);
 }
 
 #endif

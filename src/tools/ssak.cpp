@@ -31,5 +31,6 @@ int main(int argc, char** argv) {
   auto& ssak_scratch_delete = ssak_scratch.add_child(ssak::ssak_scratch_delete);
   auto& ssak_scratch_list = ssak_scratch.add_child(ssak::ssak_scratch_list);
   auto& ssak_scratch_restore = ssak_scratch.add_child(ssak::ssak_scratch_restore);
+  auto& ssak_scratch_templates = ssak_scratch.add_child(ssak::ssak_scratch_templates);
   return verbs.parse(argc, argv);
 }
