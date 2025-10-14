@@ -331,8 +331,7 @@ class arg_parser {
   }
   int format_arg_help(std::ostream& o, argument& a) {
     char parens[2] = {0,0};
-    if (a.positional); // do nothing
-    else if (!a.required) {
+    if (!a.required) {
       parens[0] = '[', parens[1] = ']';
     }
     if (parens[0]) o << parens[0];
