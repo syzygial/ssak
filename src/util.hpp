@@ -23,7 +23,7 @@ class tree {
         this->first_child = &new_node;
       }
       else {
-        node* last_child = this->traverse_row(*(this->first_child));
+        node* last_child = this->traverse_row(this->first_child);
         last_child->next_sibling = &new_node;
       }
       return new_node;
@@ -34,7 +34,7 @@ class tree {
         this->next_sibling = &new_node;
       }
       else {
-        node *last_sibling = this->traverse_row(*(this->next_sibling));
+        node *last_sibling = this->traverse_row(this->next_sibling);
         last_sibling->next_sibling = &new_node;
       }
       return new_node;
@@ -89,9 +89,9 @@ class tree {
       tree_ptr->node_vec.push_back(new_node);
       return tree_ptr->node_vec.back();
     }
-    node* traverse_row(node& n) {
-      node* node_itr = &n;
-      while (node_itr->next_sibling != nullptr) node_itr++;
+    node* traverse_row(node* n) {
+      node* node_itr = n;
+      while (node_itr->next_sibling != nullptr) node_itr = node_itr->next_sibling;
       return node_itr;
     }
     T val;
@@ -104,6 +104,7 @@ class tree {
   
   private:
   std::list<node> node_vec;
+  //ssak::forward_list<node> node_vec;
 };
 
 } // namespace ssak
