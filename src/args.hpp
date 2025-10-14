@@ -150,12 +150,28 @@ class arg_parser {
   std::map<key_type, value_type> parse_args(int argc, char* const* argv) {
     std::map<std::string, value_type> parsed_args;
     this->initialize_args(parsed_args);
-    if (argc == 0) return parsed_args;
+    //if (argc == 0) return parsed_args;
+    bool missing_arg = false;
+    std::string missing_arg_name;
     for (auto& a : this->arguments) {
-      if (*argv == nullptr) break;
+      if (*argv == nullptr) {
+        if (a.required) {
+          missing_arg = true;
+          missing_arg_name = (!a.short_name.empty()) ? a.short_name : a.long_name;
+        }
+        else continue;
+      }
       unsigned int matched_args = this->match(a, argv);
-      if (matched_args == -1) continue;
-      this->parse_arg(parsed_args, a, argv, matched_args);
+      if (matched_args == -1) {
+        if (a.required) {
+          missing_arg = true;
+          missing_arg_name = (!a.short_name.empty()) ? a.short_name : a.long_name;
+        }
+        else continue;
+      }
+      else {
+        this->parse_arg(parsed_args, a, argv, matched_args);
+      }
       //if ()
 
       argc -= (matched_args+1);
@@ -168,6 +184,7 @@ class arg_parser {
       }
       throw bad_argument(std::format("Unknown argument {}", *argv));
     }
+    if (missing_arg) throw bad_argument(std::format("missing argument {}", missing_arg_name));
     return parsed_args;
   }
   int help_message(std::ostream& o) {
@@ -216,6 +233,7 @@ class arg_parser {
   };
 
   int match(const argument& arg, char* const* argv) {
+    if (*argv == nullptr) return -1;
     bool match_found = false;
     int matched_args = -1;
     if (!arg.long_name.empty() && (std::string_view(*argv)) == arg.long_name) {
