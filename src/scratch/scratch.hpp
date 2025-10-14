@@ -1,6 +1,7 @@
 #ifndef SSAK_SCRATCH_HPP
 #define SSAK_SCRATCH_HPP
 
+#include <cstdlib>
 #include <iostream>
 #include <set>
 #include <utility>
@@ -17,7 +18,11 @@ namespace scratch {
 
 class scratch {
   public:
-  scratch() : sqlite3_conn("~/.ssak.db"), experiments(sqlite3_conn.get_info()) {}
+  scratch() : sqlite3_conn(std::string(std::getenv("HOME")) + "/.ssak.db") { // ~/.ssak.db
+    fs::path db_path = fs::path(std::getenv("HOME"));
+    db_path += ".ssak.db";
+    this->experiments = sqlite3_conn.get_info();
+  }
   scratch(const char *db_name) : sqlite3_conn(db_name), experiments(sqlite3_conn.get_info()) {}
   void create_exp(const char *name) {
     fs::path exp_path(std::string(Config::Global()["exp_root"]) + "/" + std::string(name));
@@ -81,8 +86,9 @@ class scratch {
   };
   class scratch_sqlite3_ctx : private util::sqlite3_ctx {
     public:
-    scratch_sqlite3_ctx(const char *db_name) {
-      this->connect(db_name);
+    scratch_sqlite3_ctx& operator=(const scratch_sqlite3_ctx& rhs) = delete;
+    scratch_sqlite3_ctx(const std::string& db_name) {
+      this->connect(db_name.c_str());
       const char *scratch_table_stmt =
         "CREATE TABLE IF NOT EXISTS scratch_experiments("
         "id INTEGER PRIMARY KEY ASC, "

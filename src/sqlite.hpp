@@ -26,7 +26,7 @@ class sqlite3_ctx {
 
   void connect(const char *db_name) {
     if (*this) sqlite3_close(this->db);
-    sqlite3_open(db_name, &(this->db));
+    int rc = sqlite3_open(db_name, &(this->db));
   }
 
   void use_db(const char *db) {
@@ -54,14 +54,6 @@ class sqlite3_ctx {
     sqlite3_finalize(stmt);
 }
 };
-
-
-
-
-
-
-
-
 
 }
 }
