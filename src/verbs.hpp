@@ -14,8 +14,15 @@ namespace ssak {
       verb(name, verb_fn, parser);
     }
     int run(int argc, char** argv) {
-      auto parsed_args = parser.parse_args(argc, argv);
-      return verb_fn(parsed_args);
+      try {
+        auto parsed_args = parser.parse_args(argc, argv);
+        return verb_fn(parsed_args);
+      }
+      catch(const bad_argument& e) {
+        std::cerr << "error: " <<  e.what() << std::endl;
+        parser.help_message(std::cerr);
+        exit(1);
+      }
     }
     const std::string_view get_name() const {
       return this->name;
