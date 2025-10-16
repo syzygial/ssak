@@ -1,3 +1,8 @@
 add_executable(ssak ssak.cpp ../exp_templates.cpp)
 target_link_libraries(ssak PRIVATE sqlite3)
-#add_executable(ssak-archive ssak_archive.cpp)
+#target_compile_options(ssak PRIVATE
+#  $<IF:$<CONFIG:Release>,
+#  -Wall
+# -Wextra,
+#  >
+#)
