@@ -6,3 +6,4 @@ target_link_libraries(ssak PRIVATE sqlite3)
 # -Wextra,
 #  >
 #)
+install(TARGETS ssak RUNTIME)

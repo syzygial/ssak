@@ -2,6 +2,7 @@
 #define SSAK_SCRATCH_HPP
 
 #include <cstdlib>
+#include <format>
 #include <iostream>
 #include <set>
 #include <utility>
@@ -26,12 +27,18 @@ class scratch {
   scratch(const char *db_name) : sqlite3_conn(db_name), experiments(sqlite3_conn.get_info()) {}
   void create_exp(const char *name) {
     fs::path exp_path(std::string(Config::Global()["exp_root"]) + "/" + std::string(name));
-    fs::create_directory(exp_path);
     this->create_exp(name, std::string(exp_path));
   }
   void create_exp(const char *name, const std::string& exp_path) {
-    if (name_taken(name)) return;
+    if (name_taken(name)) {
+      std::cout << std::format("experiment {} already exists", name) << std::endl;
+      return;
+    }
+    if (fs::exists(exp_path)) {
+      std::cout << std::format("path {} already exists", exp_path) << std::endl;
+    }
     fs::create_directories(exp_path);
+    this->add_exp(name, exp_path);
   }
   void add_exp(const char *name, const std::string& exp_path) {
     if (!fs::exists(exp_path)) return;
@@ -152,17 +159,17 @@ class scratch {
       sqlite3_step(stmt);
       sqlite3_finalize(stmt);
     }
-    std::map<const char*, exp_info> get_info() {
+    std::map<std::string, exp_info> get_info() {
       sqlite3_stmt *stmt;
-      std::map<const char*, exp_info> _exp_info;
+      std::map<std::string, exp_info> _exp_info;
       const char *stmt_text = "SELECT exp_name,exp_archived,exp_data FROM scratch_experiments";
       sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
       while (sqlite3_step(stmt) != SQLITE_DONE) {
         const unsigned char *exp_name = sqlite3_column_text(stmt, 0);
         size_t exp_name_len = sqlite3_column_bytes(stmt, 0);
-        char *_exp_name = (char*)malloc(exp_name_len);
+        char *_exp_name = (char*)malloc(exp_name_len+1);
         struct exp_info e;
-        std::memcpy(_exp_name, exp_name, exp_name_len);
+        std::memcpy(_exp_name, exp_name, exp_name_len+1);
         int exp_archived = sqlite3_column_int(stmt, 1);
         if (exp_archived) {
           e.is_archived = true;
@@ -172,8 +179,8 @@ class scratch {
           e.is_archived = false;
           const unsigned char *exp_path = sqlite3_column_text(stmt, 2);
           size_t exp_path_len = sqlite3_column_bytes(stmt, 2);
-          char *_exp_path = (char*)malloc(exp_path_len);
-          std::memcpy(_exp_path, exp_path, exp_path_len);
+          char *_exp_path = (char*)malloc(exp_path_len+1);
+          std::memcpy(_exp_path, exp_path, exp_path_len+1);
           e.exp_root = fs::path(_exp_path);
         }
         _exp_info[_exp_name] = e;
@@ -184,6 +191,7 @@ class scratch {
   };
 
   bool name_taken(const char *name) {
+    size_t c = experiments.count(name);
     return (experiments.count(name) > 0);
   }
   const fs::path get_exp_path(const char *name) {
@@ -191,7 +199,7 @@ class scratch {
     return experiments.at(name).exp_root;
   }
   scratch_sqlite3_ctx sqlite3_conn;
-  std::map<const char*, exp_info> experiments;
+  std::map<std::string, exp_info> experiments;
 };
 
 }

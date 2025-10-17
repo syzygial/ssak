@@ -33,10 +33,10 @@ namespace ssak {
     std::string_view exp_template = std::get<std::string_view>(parsed_args["template"]);
     ssak::scratch::scratch s;
     if (exp_path.empty()) {
-      //s.create_exp(exp_name.data());
+      s.create_exp(exp_name.data());
     }
     else {
-      //s.create_exp(exp_name.data(), exp_path);
+      s.create_exp(exp_name.data(), exp_path.data());
     }
     if (!exp_template.empty()) {
       //s.apply_template(exp_name.data(), exp_template.data());

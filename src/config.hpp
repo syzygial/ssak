@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <string_view>
 #include <map>
 #include <regex>
 
@@ -13,12 +14,16 @@ namespace ssak {
   class Config {
     public:
     //Config() {parse_config_file();}
-    Config() : Config(std::string()) {}
-    Config(std::string s) : config_file(s) {parse_config_file();}
-    const char* operator[] (const char* index) const {return (this->config_attrs).at(index).c_str();}
+    Config() : Config(std::string(std::getenv("HOME")) + "/.ssak.conf") {} // ~/.ssak.conf
+    Config(const std::string& s) : config_file(s) {
+      this->apply_defaults();
+      if (fs::exists(this->config_file)) parse_config_file();
+    }
+    std::string& operator[] (const std::string& index) {return (this->config_attrs)[index];}
     static Config& Global() {
       static std::unique_ptr<Config> global_config(new Config);
-      return *(global_config.get());
+      Config& c = *(global_config.get());
+      return c;
     }
     private:
     void parse_config_file() {
@@ -40,7 +45,10 @@ namespace ssak {
         else continue;
       }
     }
-    std::string config_file = "~/.ssak.conf";
+    void apply_defaults() {
+      (*this)["exp_root"] = std::string(std::getenv("HOME")) + "/exp";
+    }
+    std::string config_file;
     std::map<std::string,std::string> config_attrs;
   };
 }
