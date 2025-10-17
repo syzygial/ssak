@@ -24,7 +24,6 @@ namespace ssak {
   static inline int scratch_add_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
     std::string_view exp_name = std::get<std::string_view>(parsed_args["exp_name"]);
     std::string_view exp_path = std::get<std::string_view>(parsed_args["exp_path"]);
-    std::string_view exp_template = std::get<std::string_view>(parsed_args["template"]);
     ssak::scratch::scratch s;
     if (exp_path.empty()) {
       s.add_exp(exp_name.data());
@@ -54,6 +53,9 @@ namespace ssak {
     return 0;
   }
   static inline int scratch_delete_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
+    std::string_view exp_name = std::get<std::string_view>(parsed_args["exp_name"]);
+    ssak::scratch::scratch s;
+    s.del_exp(exp_name.data());
     return 0;
   }
   static inline int scratch_list_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
@@ -76,6 +78,8 @@ namespace ssak {
 
     // ssak scratch add
     arg_parser ssak_scratch_add_p("ssak scratch add");
+    ssak_scratch_add_p.add_argument<std::string_view>(std::nullopt, "exp_name", std::nullopt, 1, true, ssak::STORE);
+    ssak_scratch_add_p.add_argument<std::string_view>(std::nullopt, "exp_path", std::nullopt, 1, false, ssak::STORE);
     verb ssak_scratch_add("add", scratch_add_verb_fn, ssak_scratch_add_p);
 
     // ssak scratch archive
@@ -91,6 +95,7 @@ namespace ssak {
 
     // ssak scratch delete
     arg_parser ssak_scratch_delete_p("ssak scratch delete");
+    ssak_scratch_delete_p.add_argument<std::string_view>(std::nullopt, "exp_name", std::nullopt, 1, true, ssak::STORE);
     verb ssak_scratch_delete("delete", scratch_delete_verb_fn, ssak_scratch_delete_p);
 
     // ssak scratch list

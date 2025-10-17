@@ -20,8 +20,6 @@ namespace scratch {
 class scratch {
   public:
   scratch() : sqlite3_conn(std::string(std::getenv("HOME")) + "/.ssak.db") { // ~/.ssak.db
-    fs::path db_path = fs::path(std::getenv("HOME"));
-    db_path += ".ssak.db";
     this->experiments = sqlite3_conn.get_info();
   }
   scratch(const char *db_name) : sqlite3_conn(db_name), experiments(sqlite3_conn.get_info()) {}
@@ -60,6 +58,10 @@ class scratch {
     this->experiments[name] = {absolute_path, false};
   }
   void del_exp(const char *name) {
+    if (!name_taken(name)) {
+      std::cout << std::format("experiment {} does not exist", name) << std::endl;
+      return;
+    }
     auto &_exp_info = experiments.at(name);
     if (!_exp_info.is_archived) {
       fs::remove_all(_exp_info.exp_root);
