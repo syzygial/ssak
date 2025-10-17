@@ -40,8 +40,19 @@ class scratch {
     fs::create_directories(exp_path);
     this->add_exp(name, exp_path);
   }
+  void add_exp(const char *name) {
+    fs::path exp_path(std::string(Config::Global()["exp_root"]) + "/" + std::string(name));
+    this->add_exp(name, std::string(exp_path));
+  }
   void add_exp(const char *name, const std::string& exp_path) {
-    if (!fs::exists(exp_path)) return;
+    if (name_taken(name)) {
+      std::cout << std::format("experiment {} already exists", name) << std::endl;
+      return;
+    }
+    if (!fs::exists(exp_path)) {
+      std::cout << std::format("path {} does not exist", exp_path) << std::endl;
+      return;
+    }
     const fs::path absolute_path = fs::absolute(exp_path);
     const char *path_str = absolute_path.c_str();
     sqlite3_conn.add_exp(name, path_str);
