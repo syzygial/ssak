@@ -193,8 +193,10 @@ class scratch {
           char *_exp_path = (char*)malloc(exp_path_len+1);
           std::memcpy(_exp_path, exp_path, exp_path_len+1);
           e.exp_root = fs::path(_exp_path);
+          free(_exp_path);
         }
         _exp_info[_exp_name] = e;
+        free(_exp_name);
       }
       sqlite3_finalize(stmt);
       return _exp_info;
