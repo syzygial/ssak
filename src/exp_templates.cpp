@@ -15,6 +15,12 @@ static const project_template c_project {
 }
 };
 
+static const project_template opengl_glfw_project {
+  {"opengl_glfw.c",
+  ""
+  }
+};
+
 static const std::map<std::string, project_template> templates {
   {"c", c_project}
 };
