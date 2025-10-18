@@ -1,6 +1,8 @@
 #ifndef SSAK_VERBS_HPP
 #define SSAK_VERBS_HPP
 
+#include <cstdlib>
+
 #include "args.hpp"
 #include "util.hpp"
 
@@ -14,17 +16,21 @@ namespace ssak {
       verb(name, verb_fn, parser);
     }
     int run(int argc, char** argv) {
-      /*try {
+      if (std::getenv("SSAK_DEBUG") == nullptr) {
+        try {
+          auto parsed_args = parser.parse_args(argc, argv);
+          return verb_fn(parsed_args);
+        }
+        catch(const bad_argument& e) {
+          std::cerr << "error: " <<  e.what() << std::endl;
+          parser.help_message(std::cerr);
+          exit(1);
+        }
+      }
+      else {
         auto parsed_args = parser.parse_args(argc, argv);
         return verb_fn(parsed_args);
       }
-      catch(const bad_argument& e) {
-        std::cerr << "error: " <<  e.what() << std::endl;
-        parser.help_message(std::cerr);
-        exit(1);
-      }*/
-      auto parsed_args = parser.parse_args(argc, argv);
-      return verb_fn(parsed_args);
     }
     const std::string_view get_name() const {
       return this->name;

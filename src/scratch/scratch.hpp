@@ -115,6 +115,15 @@ class scratch {
     list_exp(std::cout);
   }
   void apply_template(const char *exp_name, const char *template_name) {
+    if (!name_taken(exp_name)) {
+      std::cout << std::format("experiment {} does not exist", exp_name) << std::endl;
+      return;
+    }
+    auto& archive_exp_info = experiments.at(exp_name);
+    if (archive_exp_info.is_archived) {
+      std::cout << std::format("experiment {} is already archived", exp_name) << std::endl;
+      return;
+    }
     const fs::path& exp_root = this->get_exp_path(exp_name);
     initialize_template(template_name, exp_root);
   }
