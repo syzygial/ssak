@@ -69,8 +69,15 @@ class scratch {
     sqlite3_conn.delete_archive(name);
   }
   void archive_exp(const char *name) {
+    if (!name_taken(name)) {
+      std::cout << std::format("experiment {} does not exist", name) << std::endl;
+      return;
+    }
     auto& archive_exp_info = experiments.at(name);
-    if (archive_exp_info.is_archived) return;
+    if (archive_exp_info.is_archived) {
+      std::cout << std::format("experiment {} is already archived", name) << std::endl;
+      return;
+    }
     size_t blob_size = 0;
     void *exp_blob = create_archive(archive_exp_info.exp_root.c_str(), &blob_size);
     sqlite3_conn.archive_exp(name, exp_blob, blob_size);
@@ -79,7 +86,20 @@ class scratch {
     archive_exp_info.is_archived = true;
     if (exp_blob != nullptr) free(exp_blob);
   }
+  void extract_exp(const char *name) {
+    std::string exp_path = std::string(Config::Global()["exp_root"]);
+    extract_exp(name, exp_path);
+  }
   void extract_exp(const char *name, const std::string& dir) {
+    if (!name_taken(name)) {
+      std::cout << std::format("experiment {} does not exist", name) << std::endl;
+      return;
+    }
+    auto& archive_exp_info = experiments.at(name);
+    if (!archive_exp_info.is_archived) {
+      std::cout << std::format("experiment {} is already extracted", name) << std::endl;
+      return;
+    }
     auto& _exp_info = experiments.at(name);
     if (!_exp_info.is_archived) return;
     const auto& [archive_dat, archive_len] = sqlite3_conn.extract_archive(name);

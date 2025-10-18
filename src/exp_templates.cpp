@@ -9,12 +9,13 @@ namespace ssak {
 
 static const project_template c_project {
   {"test.c", 
-"int main() {\
-  return 0;\
-}"}
+  "int main() {\n"
+  "  return 0;\n"
+  "}\n"
+}
 };
 
-static const std::map<const char*, project_template> templates {
+static const std::map<std::string, project_template> templates {
   {"c", c_project}
 };
 

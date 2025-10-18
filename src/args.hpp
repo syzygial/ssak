@@ -164,33 +164,44 @@ class arg_parser {
     //if (argc == 0) return parsed_args;
     bool missing_arg = false;
     std::string missing_arg_name;
-    for (auto& a : this->arguments) {
-      if (*argv == nullptr) {
-        if (a.required) {
-          missing_arg = true;
-          missing_arg_name = (!a.short_name.empty()) ? a.short_name : a.long_name;
+    bool done = false;
+    loop_start:
+    while (!done) {
+      for (auto& a : this->arguments) {
+        if (*argv == nullptr) {
+          if (a.required) {
+            missing_arg = true;
+            missing_arg_name = (!a.short_name.empty()) ? a.short_name : a.long_name;
+            //done = true;
+            //break;
+          }
+          else continue;
         }
-        else continue;
-      }
-      int matched_args = this->match(a, argv);
-      if (matched_args == -1) {
-        if (a.required) {
-          missing_arg = true;
-          missing_arg_name = (!a.short_name.empty()) ? a.short_name : a.long_name;
-        }
-        else continue;
-      }
-      else {
-        this->parse_arg(parsed_args, a, argv, matched_args);
-        if (a.positional) {
-          argc -= matched_args;
-          argv += matched_args;
+        int matched_args = this->match(a, argv);
+        if (matched_args == -1) {
+          if (a.required) {
+            missing_arg = true;
+            missing_arg_name = (!a.short_name.empty()) ? a.short_name : a.long_name;
+            //done = true;
+            //break;
+          }
+          else continue;
         }
         else {
-          argc -= (matched_args+1);
-          argv += (matched_args+1);
+          this->parse_arg(parsed_args, a, argv, matched_args);
+          if (a.positional) {
+            argc -= matched_args;
+            argv += matched_args;
+          }
+          else {
+            argc -= (matched_args+1);
+            argv += (matched_args+1);
+          }
+          if (argc == 0) done = true;
+          goto loop_start;
         }
       }
+      done = true;
     }
     if (argc > 0) {
       /*if ((std::string_view(*argv) == "-h") || std::string_view(*argv) == "--help") {

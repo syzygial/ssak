@@ -34,6 +34,9 @@ namespace ssak {
     return 0;
   }
   static inline int scratch_archive_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
+    std::string_view exp_name = std::get<std::string_view>(parsed_args["exp_name"]);
+    ssak::scratch::scratch s;
+    s.archive_exp(exp_name.data());
     return 0;
   }
   static inline int scratch_create_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
@@ -48,7 +51,7 @@ namespace ssak {
       s.create_exp(exp_name.data(), exp_path.data());
     }
     if (!exp_template.empty()) {
-      //s.apply_template(exp_name.data(), exp_template.data());
+      s.apply_template(exp_name.data(), exp_template.data());
     }
     return 0;
   }
@@ -64,6 +67,15 @@ namespace ssak {
     return 0;
   }
   static inline int scratch_restore_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
+    std::string_view exp_name = std::get<std::string_view>(parsed_args["exp_name"]);
+    std::string_view exp_path = std::get<std::string_view>(parsed_args["exp_path"]);
+    ssak::scratch::scratch s;
+    if (exp_path.empty()) {
+      s.extract_exp(exp_name.data());
+    }
+    else {
+      s.extract_exp(exp_name.data(), exp_path.data());
+    }
     return 0;
   }
   static inline int scratch_templates_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
@@ -84,6 +96,7 @@ namespace ssak {
 
     // ssak scratch archive
     arg_parser ssak_scratch_archive_p("ssak scratch archive");
+    ssak_scratch_archive_p.add_argument<std::string_view>(std::nullopt, "exp_name", std::nullopt, 1, true, ssak::STORE);
     verb ssak_scratch_archive("archive", scratch_archive_verb_fn, ssak_scratch_archive_p);
 
     // ssak scratch create
@@ -104,6 +117,8 @@ namespace ssak {
 
     // ssak scratch restore
     arg_parser ssak_scratch_restore_p("ssak scratch restore");
+    ssak_scratch_restore_p.add_argument<std::string_view>(std::nullopt, "exp_name", std::nullopt, 1, true, ssak::STORE);
+    ssak_scratch_restore_p.add_argument<std::string_view>(std::nullopt, "exp_path", std::nullopt, 1, false, ssak::STORE);
     verb ssak_scratch_restore("restore", scratch_restore_verb_fn, ssak_scratch_restore_p);
 
     // ssak scratch templates
