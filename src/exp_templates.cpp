@@ -11,6 +11,8 @@ namespace ssak {
 
 // This section generated automatically by scripts/gen_project_templates.py
 
+namespace {
+
 static const project_template c_project {
   {"main.c",
   "int main() {\n"
@@ -71,6 +73,8 @@ static const std::map<std::string, project_template> templates {
   {"directx9", directx9_project},
 };
 
+} // namespace
+
 // End automatically-generated section
 
 void initialize_template(const char* template_name, const fs::path &root) {
@@ -101,7 +105,7 @@ void list_templates() {
 
 void list_templates(std::ostream& o) {
   for (auto& [k,v] : templates) {
-    std::cout << k << std::endl;
+    o << k << std::endl;
   }
 }
 

@@ -5,6 +5,7 @@ import sys
 def gen_project_templates():
   template_dirs = glob.glob('src/templates/*')
   sys.stdout.write("// This section generated automatically by scripts/gen_project_templates.py\n\n")
+  sys.stdout.write("namespace {\n\n")
   for d in template_dirs:
     sys.stdout.write("static const project_template {}_project {{".format(d.split('/')[-1]))
     # exclude directories, courtesy of
@@ -26,6 +27,7 @@ def gen_project_templates():
   for d in template_dirs:
     sys.stdout.write('  {{"{0}", {0}_project}},\n'.format(d.split('/')[-1]))
   sys.stdout.write("};\n\n")
+  sys.stdout.write("} // namespace\n\n")
   sys.stdout.write("// End automatically-generated section\n")
 if __name__ == "__main__":
   gen_project_templates()
