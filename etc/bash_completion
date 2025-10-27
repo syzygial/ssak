@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+_ssak() {
+
+ssak_commands="scratch"
+ssak_scratch_commands="add archive create delete list restore template"
+#if [[ "$3" == "ssak" ]]; then
+  #COMPREPLY=($ssak_scratch_commands)
+  COMPREPLY=($(compgen -W "$ssak_scratch_commands" -- "$2"))
+#fi
+
+}
+
+complete -o nospace -F _ssak ssak
