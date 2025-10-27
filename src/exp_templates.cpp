@@ -20,6 +20,36 @@ static const project_template c_project {
   "}\n"
   },
 };
+
+static const project_template linux_driver_project {
+  {"kmod_example.c",
+  "#include <linux/module.h>\n"
+  "#include <linux/printk.h>\n"
+  "\n"
+  "int init_module() {\n"
+  "  pr_info(\"Hello world\\n\");\n"
+  "  return 0;\n"
+  "}\n"
+  "\n"
+  "void cleanup_module() {\n"
+  "  pr_info(\"Goodbye world\\n\");\n"
+  "}\n"
+  "\n"
+  "MODULE_LICENSE(\"GPL\");\n"
+  },
+  {"Makefile",
+  "obj-m += kmod_example.o\n"
+  "\n"
+  "PWD := $(CURDIR)\n"
+  "\n"
+  "all:\n"
+  "	$(MAKE) -C /usr/lib/modules/$(shell uname -r)/build M=$(PWD) modules\n"
+  "\n"
+  "clean:\n"
+  "	$(MAKE) -C /usr/lib/modules/$(shell uname -r)/build M=$(PWD) clean\n"
+  },
+};
+
 static const project_template pulseaudio_project {
   {"CMakeLists.txt",
   "cmake_minimum_required(VERSION 3.0)\n"
@@ -44,6 +74,7 @@ static const project_template pulseaudio_project {
   "}\n"
   },
 };
+
 static const project_template py_package_project {};
 
 static const project_template qt6_project {};
@@ -62,6 +93,7 @@ static const project_template directx9_project {};
 
 static const std::map<std::string, project_template> templates {
   {"c", c_project},
+  {"linux_driver", linux_driver_project},
   {"pulseaudio", pulseaudio_project},
   {"py_package", py_package_project},
   {"qt6", qt6_project},

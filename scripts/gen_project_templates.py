@@ -20,9 +20,11 @@ def gen_project_templates():
         sys.stdout.write('  {{"{}",\n'.format(relative_fname))
         with open(fname, 'r') as f:
           for line in f:
-            sys.stdout.write('  "{}\\n"\n'.format(line.strip('\n')))
+            sys.stdout.write('  "{}\\n"\n'.format(line.strip('\n')
+              .replace('"', R'\"')
+              .replace(R'\n', R'\\n')))
         sys.stdout.write("  },\n")
-      sys.stdout.write("};\n")
+      sys.stdout.write("};\n\n")
   sys.stdout.write("static const std::map<std::string, project_template> templates {\n")
   for d in template_dirs:
     sys.stdout.write('  {{"{0}", {0}_project}},\n'.format(d.split('/')[-1]))
