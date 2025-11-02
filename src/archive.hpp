@@ -6,7 +6,13 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <utility>
+#include <tuple>
+
+#ifdef __unix__
+#include <sys/stat.h>
+#else
+typedef unsigned int mode_t;
+#endif
 
 #include <archive.h>
 #include <archive_entry.h>
@@ -22,7 +28,7 @@ namespace ssak {
     public:
     typedef int difference_type;
     //typedef archive_entry* value_type;
-    typedef std::pair<std::string, std::string> value_type;
+    typedef std::tuple<std::string, mode_t, std::string> value_type;
     typedef value_type* pointer;
     typedef value_type& reference;
     typedef std::forward_iterator_tag iterator_category;
@@ -76,13 +82,14 @@ namespace ssak {
       int64_t file_size = archive_entry_size(this->e);
       void *raw_dat = malloc(file_size);
       int bytes_read = archive_read_data(a, raw_dat, file_size);
+      mode_t entry_mode = archive_entry_perm(this->e);
       std::string fname(archive_entry_pathname(this->e));
       std::string byte_str;
       if (bytes_read > 0) {
         byte_str.append((char*)raw_dat, bytes_read);
       }
       free(raw_dat);
-      return {fname, byte_str};
+      return {fname, entry_mode, byte_str};
     }
     bool operator==(const archive_itr& rhs) const {
       if (rhs.a != NULL) {

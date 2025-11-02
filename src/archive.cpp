@@ -74,7 +74,13 @@ namespace ssak {
       archive_entry_set_pathname(e, fs::relative(f.path(), exp_parent).c_str());
       archive_entry_set_size(e, sz);
       archive_entry_set_filetype(e, AE_IFREG);
+      #ifdef __unix__
+      struct stat s;
+      stat(f.path().c_str(), &s);
+      archive_entry_set_perm(e, s.st_mode);
+      #else
       archive_entry_set_perm(e, 0644);
+      #endif
       archive_write_header(a,e);
       std::FILE* fp = fopen(f.path().c_str(), "r");
       char *buf = (char*)malloc(sz);
@@ -120,13 +126,17 @@ void* create_archive(const char *dirname, size_t *archive_sz) {
 
 void extract_archive(void *archive, size_t archive_len, const std::string& root_dir) {
   archive_itr itr(archive, archive_len);
-  for (const auto &[fname, file_contents] : itr) {
+  for (const auto &[fname, file_mode, file_contents] : itr) {
     fs::path fname_path(root_dir + "/" + fname);
     if (!fs::exists(fname_path.parent_path())) {
       fs::create_directories(fname_path.parent_path());
     }
     FILE *f = fopen(fname_path.c_str(), "wb");
     fwrite(file_contents.c_str(), 1, file_contents.length(), f);
+    #ifdef __unix__
+    int fd = fileno(f);
+    fchmod(fd, file_mode);
+    #endif
     fclose(f);
   }
 }

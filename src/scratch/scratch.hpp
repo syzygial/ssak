@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <format>
 #include <iostream>
+#include <map>
 #include <set>
 #include <utility>
 
@@ -102,13 +103,15 @@ class scratch {
     }
     auto& _exp_info = experiments.at(name);
     if (!_exp_info.is_archived) return;
-    const auto& [archive_dat, archive_len] = sqlite3_conn.extract_archive(name);
+    const auto& [archive_dat, archive_len] = sqlite3_conn.extract_archive(name, dir);
     extract_archive(archive_dat, archive_len, dir);
     free(archive_dat);
   }
   void list_exp(std::ostream &os) {
     for (auto& [k,v] : experiments) {
-      os << k << std::endl;
+      os << k;
+      if (v.is_archived) os << " (archived)";
+      os << std::endl;
     }
   }
   void list_exp() {
@@ -180,7 +183,7 @@ class scratch {
       sqlite3_step(stmt);
       sqlite3_finalize(stmt);
     }
-    std::pair<void*,size_t> extract_archive(const char *name) {
+    std::pair<void*,size_t> extract_archive(const char *name, const std::string& dir) {
       sqlite3_stmt *stmt;
       const char *stmt_text = "SELECT exp_data FROM scratch_experiments WHERE exp_name=?1";
       sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
@@ -190,6 +193,14 @@ class scratch {
       size_t exp_data_len = sqlite3_column_bytes(stmt, 0);
       void *_exp_data = malloc(exp_data_len);
       memcpy(_exp_data, exp_data, exp_data_len);
+      sqlite3_finalize(stmt);
+
+      const std::string exp_name = dir + "/" + name;
+      stmt_text = "UPDATE scratch_experiments SET exp_archived=FALSE,exp_data=?1 WHERE exp_name=?2";
+      sqlite3_prepare(this->db, stmt_text, std::strlen(stmt_text), &stmt, NULL);
+      sqlite3_bind_text(stmt, 1, exp_name.c_str(), exp_name.size(), SQLITE_STATIC);
+      sqlite3_bind_text(stmt, 2, name, std::strlen(name), SQLITE_STATIC);
+      sqlite3_step(stmt);
       sqlite3_finalize(stmt);
       return {_exp_data, exp_data_len};
     }
