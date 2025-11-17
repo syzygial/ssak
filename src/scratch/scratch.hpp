@@ -142,7 +142,7 @@ class scratch {
     scratch_sqlite3_ctx(const std::string& db_name) {
       this->connect(db_name.c_str());
       const char *scratch_table_stmt =
-        "CREATE TABLE IF NOT EXISTS scratch_experiments("
+        "CREATE TABLE IF NOT EXISTS scratch_experiments( "
         "id INTEGER PRIMARY KEY ASC, "
         "exp_name TEXT UNIQUE, "
         "exp_archived BOOLEAN, "
