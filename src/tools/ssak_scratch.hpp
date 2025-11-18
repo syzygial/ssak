@@ -125,14 +125,14 @@ namespace ssak {
     arg_parser ssak_scratch_templates_p("ssak scratch templates");
     verb ssak_scratch_templates("templates", scratch_templates_verb_fn, ssak_scratch_templates_p);
 
-  auto& ssak_scratch_node = ssak_root.add_child(ssak_scratch);
-  auto& ssak_scratch_add_node = ssak_scratch_node.add_child(ssak_scratch_add);
-  auto& ssak_scratch_archive_node = ssak_scratch_node.add_child(ssak_scratch_archive);
-  auto& ssak_scratch_create_node = ssak_scratch_node.add_child(ssak_scratch_create);
-  auto& ssak_scratch_delete_node = ssak_scratch_node.add_child(ssak_scratch_delete);
-  auto& ssak_scratch_list_node = ssak_scratch_node.add_child(ssak_scratch_list);
-  auto& ssak_scratch_restore_node = ssak_scratch_node.add_child(ssak_scratch_restore);
-  auto& ssak_scratch_templates_node = ssak_scratch_node.add_child(ssak_scratch_templates);
+    auto& ssak_scratch_node = ssak_root.add_child(ssak_scratch);
+    auto& ssak_scratch_add_node = ssak_scratch_node.add_child(ssak_scratch_add);
+    auto& ssak_scratch_archive_node = ssak_scratch_node.add_child(ssak_scratch_archive);
+    auto& ssak_scratch_create_node = ssak_scratch_node.add_child(ssak_scratch_create);
+    auto& ssak_scratch_delete_node = ssak_scratch_node.add_child(ssak_scratch_delete);
+    auto& ssak_scratch_list_node = ssak_scratch_node.add_child(ssak_scratch_list);
+    auto& ssak_scratch_restore_node = ssak_scratch_node.add_child(ssak_scratch_restore);
+    auto& ssak_scratch_templates_node = ssak_scratch_node.add_child(ssak_scratch_templates);
   }
 }
 

@@ -4,12 +4,14 @@
 #include "../verbs.hpp"
 
 #include "ssak_scratch.hpp"
+#include "ssak_task.hpp"
 
 int main_verb(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
   static const std::string commands_str =
   "ssak\n\n"
   "commands:\n"
-  "  scratch: experiment scratchpad";
+  "  scratch: experiment scratchpad\n"
+  "  task: task information";
   std::cout << commands_str << std::endl;
   return 0;
 }
@@ -24,5 +26,7 @@ int main(int argc, char** argv) {
 
   auto& ssak_root = verbs.get_root();
   ssak::scratch_init(ssak_root);
+  ssak::task_init(ssak_root);
+
   return verbs.parse(argc, argv);
 }
