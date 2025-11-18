@@ -1,5 +1,5 @@
 #ifndef SSAK_TOOLS_TASK_HPP
-#define SSAK_TOOLS_SCRATCH_HPP
+#define SSAK_TOOLS_TASK_HPP
 
 #include <iostream>
 
