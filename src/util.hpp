@@ -51,6 +51,9 @@ class tree {
     node& get_first_child() {
       return *(this->first_child);
     }
+    node& get_next_sibling() {
+      return *(this->next_sibling);
+    }
     bool is_leaf() const {
       return this->first_child == nullptr;
     }

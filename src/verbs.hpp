@@ -70,6 +70,7 @@ namespace ssak {
           continue;
         }
         sibling_itr++;
+        verb_itr = &(verb_itr->get_next_sibling());
       }
         //break; // no matching subcommand
       //if (verb_itr == &root_verb) {

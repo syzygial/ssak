@@ -37,7 +37,7 @@ class task {
       this->connect(db_name.c_str());
       const char *task_table_stmt = 
         "CREATE TABLE IF NOT EXISTS tasks( "
-        "id INTEGAR PRIMARY KEY ASC, "
+        "id INTEGER PRIMARY KEY ASC, "
         "task_name TEXT UNIQUE, "
         "task_desc TEXT, "
         "task_depends TEXT" // csv of task prerequiside IDs
