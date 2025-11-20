@@ -27,6 +27,19 @@ namespace ssak
       {
       }
       task(const char *db_name) : sqlite3_conn(db_name), tasks(sqlite3_conn.get_info()) {}
+      void task_graph(std::ostream& os) {
+        os << "digraph G {\n";
+        for (auto& [k,v] : this->tasks) {
+          os << "\"" << k << "\";\n";
+          for (auto& d : v.dependencies) {
+            os << "\"" << k << "\"" << "->" << "\"" << d.get().name << "\";\n";
+          }
+        }
+        os << "}" << std::endl;
+      }
+      void task_graph() {
+        task_graph(std::cout);
+      }
       void list_tasks(std::ostream &os)
       {
         for (auto &[k, v] : tasks)

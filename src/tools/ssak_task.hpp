@@ -21,6 +21,11 @@ namespace ssak {
     std::cout << commands_str << std::endl;
     return 0;
   }
+  static inline int task_graph_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
+    ssak::task::task t;
+    t.task_graph();
+    return 0;
+  }
   static inline int task_list_verb_fn(std::map<ssak::arg_parser::key_type, ssak::arg_parser::value_type>& parsed_args) {
     ssak::task::task t;
     t.list_tasks();
@@ -35,7 +40,11 @@ namespace ssak {
     arg_parser ssak_task_list_p("ssak task list");
     verb ssak_task_list("list", task_list_verb_fn, ssak_task_list_p);
 
+    arg_parser ssak_task_graph_p("ssak task graph");
+    verb ssak_task_graph("graph", task_graph_verb_fn, ssak_task_graph_p);
+
     auto& ssak_task_node = ssak_root.add_child(ssak_task);
+    auto& ssak_task_graph_node = ssak_task_node.add_child(ssak_task_graph);
     auto& ssak_task_list_node = ssak_task_node.add_child(ssak_task_list);
   }
 } // namespace ssak
